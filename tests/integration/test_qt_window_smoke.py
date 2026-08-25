@@ -46,6 +46,7 @@ def test_main_window_refreshes_from_snapshot_and_keeps_privacy_toggles_safe() ->
         disabled_unchecked = [box for box in checkboxes if not box.isEnabled() and not box.isChecked()]
         assert len(disabled_unchecked) >= 5
         assert window.world_tab.status._value.text() == "稼働中"
+        assert window.world_tab.provider._value.text() == "デモ"
     finally:
         window.close()
 

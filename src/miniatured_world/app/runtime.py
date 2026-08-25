@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from miniatured_world.activity import ActivityFrame, ActivityProvider, NullActivityProvider
+from miniatured_world.activity import ActivityFrame, ActivityProvider, ActivityProviderStatus, NullActivityProvider
 from miniatured_world.app.commands import RuntimeCommand
 from miniatured_world.app.service import MiniaturedWorldService
 from miniatured_world.app.snapshot import WorldSnapshot
@@ -129,4 +129,17 @@ class AppRuntime:
             world_visible=self.state.world_visible,
             muted=self.state.muted,
             activity_collection_enabled=self.state.activity_collection_enabled,
+            provider_status=self.provider_status(),
         )
+
+    def provider_status(self) -> ActivityProviderStatus:
+        try:
+            return self.provider.status()
+        except Exception as error:
+            return ActivityProviderStatus(
+                name="unknown",
+                display_name="状態不明",
+                available=False,
+                active=False,
+                detail=f"活動取得状態を確認できません: {error}",
+            )

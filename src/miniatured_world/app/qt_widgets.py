@@ -127,6 +127,7 @@ def build_main_window(runtime: AppRuntime):
             self.events = _InfoPill("イベント")
             self.discoveries = _InfoPill("発見")
             self.status = _InfoPill("状態")
+            self.provider = _InfoPill("活動取得")
 
             layout = QVBoxLayout(self)
             layout.setContentsMargins(16, 16, 16, 16)
@@ -144,6 +145,7 @@ def build_main_window(runtime: AppRuntime):
                     self.events,
                     self.discoveries,
                     self.status,
+                    self.provider,
                 )
             ):
                 grid.addWidget(pill, index // 4, index % 4)
@@ -179,6 +181,7 @@ def build_main_window(runtime: AppRuntime):
             self.events.set_value(len(snapshot.events))
             self.discoveries.set_value(len(snapshot.discoveries))
             self.status.set_value(_status_text(snapshot))
+            self.provider.set_value(_provider_status_text(snapshot))
             self.pause_button.setText("再開" if snapshot.paused else "一時停止")
             self.activity_button.setText("活動再開" if not snapshot.activity_collection_enabled else "活動停止")
             self.activity_button.setProperty(
@@ -497,6 +500,16 @@ def build_main_window(runtime: AppRuntime):
         if not snapshot.activity_collection_enabled:
             return "活動停止中"
         return "稼働中"
+
+    def _provider_status_text(snapshot: WorldSnapshot) -> str:
+        status = snapshot.provider_status
+        if not snapshot.activity_collection_enabled:
+            return "停止中"
+        if not status.available:
+            return f"{status.display_name}: 利用不可"
+        if not status.active:
+            return f"{status.display_name}: 停止"
+        return status.display_name
 
     def _display_value(value: str) -> str:
         labels = {

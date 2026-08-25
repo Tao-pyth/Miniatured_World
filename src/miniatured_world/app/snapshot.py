@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from miniatured_world.activity.models import ActivityFrame
+from miniatured_world.activity.provider import ActivityProviderStatus
 from miniatured_world.world.simulation import WorldSimulation
 
 
@@ -18,6 +19,7 @@ class WorldSnapshot:
     world_visible: bool
     muted: bool
     activity_collection_enabled: bool
+    provider_status: ActivityProviderStatus
     world_time: float
     humidity: float
     wind: float
@@ -40,6 +42,7 @@ class WorldSnapshot:
         world_visible: bool,
         muted: bool,
         activity_collection_enabled: bool,
+        provider_status: ActivityProviderStatus,
     ) -> "WorldSnapshot":
         state = simulation.session.state
         intensity = frame.intensity()
@@ -54,6 +57,7 @@ class WorldSnapshot:
             world_visible=world_visible,
             muted=muted,
             activity_collection_enabled=activity_collection_enabled,
+            provider_status=provider_status,
             world_time=round(state.environment.world_time, 3),
             humidity=round(state.environment.humidity, 3),
             wind=round(state.environment.wind, 3),
