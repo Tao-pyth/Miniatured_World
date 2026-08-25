@@ -240,6 +240,7 @@ def build_main_window(runtime: AppRuntime):
         def __init__(self, runtime: AppRuntime) -> None:
             super().__init__()
             self.runtime = runtime
+            self._display_signature: tuple[str, bool, bool, float] | None = None
             self.setWindowTitle("Miniatured World")
             self.setMinimumSize(900, 620)
 
@@ -252,6 +253,7 @@ def build_main_window(runtime: AppRuntime):
             self.tabs.addTab(self.discovery_tab, "発見")
             self.setCentralWidget(self.tabs)
             self.setStyleSheet(_style_sheet())
+            _apply_display_settings(self)
 
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.advance)
@@ -265,6 +267,7 @@ def build_main_window(runtime: AppRuntime):
                 self.close()
 
         def refresh(self, snapshot: WorldSnapshot) -> None:
+            _apply_display_settings(self)
             self.world_tab.refresh(snapshot)
             self.discovery_tab.refresh(snapshot)
 
@@ -491,6 +494,33 @@ def build_main_window(runtime: AppRuntime):
                 ("スキーマバージョン", _spin(settings.data.schema_version, 1, 99, 1)),
             ],
         )
+
+    def _apply_display_settings(window: QMainWindow) -> None:
+        display = window.runtime.service.settings.display
+        mode = display.view_mode
+        desktop_mode = mode == "desktop"
+        opacity = max(0.2, min(1.0, float(display.opacity)))
+        signature = (mode, bool(display.always_on_top), bool(display.click_through), opacity)
+
+        if getattr(window, "_display_signature", None) == signature:
+            window.setWindowOpacity(opacity)
+            return
+
+        flags = Qt.WindowType.Window
+        if desktop_mode:
+            flags |= Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
+        if desktop_mode or display.always_on_top:
+            flags |= Qt.WindowType.WindowStaysOnTopHint
+
+        was_visible = window.isVisible()
+        window.setWindowFlags(flags)
+        window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, desktop_mode)
+        window.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, desktop_mode and display.click_through)
+        window.setWindowOpacity(opacity)
+        window._display_signature = signature
+
+        if was_visible:
+            window.show()
 
     def _status_text(snapshot: WorldSnapshot) -> str:
         if not snapshot.running:

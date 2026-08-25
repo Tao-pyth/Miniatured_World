@@ -6,7 +6,8 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 PySide6 = pytest.importorskip("PySide6")
 
-from PySide6.QtWidgets import QApplication, QCheckBox, QTabWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QCheckBox, QComboBox, QSlider, QTabWidget
 
 from miniatured_world.activity import DemoActivityProvider
 from miniatured_world.app.commands import RuntimeCommand
@@ -64,6 +65,65 @@ def test_settings_controls_update_runtime_and_persist(tmp_path) -> None:
         assert runtime.snapshot().activity_collection_enabled is False
         assert runtime.service.store is not None
         assert runtime.service.store.load_settings().activity.enabled is False
+    finally:
+        window.close()
+
+
+def test_display_settings_apply_window_attributes(tmp_path) -> None:
+    _app()
+    runtime = AppRuntime.start(seed=20260825, provider=DemoActivityProvider(), data_root=tmp_path)
+    window = build_main_window(runtime)
+    window.show()
+
+    try:
+        runtime.update_setting("display", "view_mode", "desktop")
+        runtime.update_setting("display", "click_through", True)
+        runtime.update_setting("display", "opacity", 0.65)
+        window.refresh(runtime.snapshot())
+
+        assert bool(window.windowFlags() & Qt.WindowType.FramelessWindowHint)
+        assert bool(window.windowFlags() & Qt.WindowType.Tool)
+        assert bool(window.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
+        assert window.testAttribute(Qt.WidgetAttribute.WA_TranslucentBackground) is True
+        assert window.testAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents) is True
+        assert round(window.windowOpacity(), 2) == 0.65
+
+        runtime.update_setting("display", "view_mode", "window")
+        window.refresh(runtime.snapshot())
+
+        assert window.testAttribute(Qt.WidgetAttribute.WA_TranslucentBackground) is False
+        assert window.testAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents) is False
+    finally:
+        window.close()
+
+
+def test_display_settings_controls_update_runtime_and_window(tmp_path) -> None:
+    _app()
+    runtime = AppRuntime.start(seed=20260825, provider=DemoActivityProvider(), data_root=tmp_path)
+    window = build_main_window(runtime)
+
+    try:
+        combo = window.findChild(QComboBox, "display_view_mode")
+        assert combo is not None
+        combo.setCurrentText("desktop")
+
+        always_on_top = window.findChild(QCheckBox, "display_always_on_top")
+        assert always_on_top is not None
+        always_on_top.setChecked(True)
+
+        opacity = window.findChild(QSlider, "display_opacity")
+        assert opacity is not None
+        opacity.setValue(70)
+
+        window.refresh(runtime.snapshot())
+
+        assert runtime.service.store is not None
+        settings = runtime.service.store.load_settings()
+        assert settings.display.view_mode == "desktop"
+        assert settings.display.always_on_top is True
+        assert settings.display.opacity == 0.7
+        assert bool(window.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
+        assert round(window.windowOpacity(), 2) == 0.7
     finally:
         window.close()
 
