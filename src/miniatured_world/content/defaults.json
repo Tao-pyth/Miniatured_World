@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "materials": [
+    {"id": "sand", "density": 0.9, "mobility": 0.75, "fertility": 0.0, "moisture": 0.0, "nutrition": 0.0, "rarity": 0.2},
+    {"id": "soil", "density": 1.0, "mobility": 0.35, "fertility": 0.8, "moisture": 0.2, "nutrition": 0.45, "rarity": 0.3},
+    {"id": "seed", "density": 0.3, "mobility": 0.7, "fertility": 1.0, "moisture": 0.1, "nutrition": 0.2, "rarity": 0.5},
+    {"id": "water", "density": 0.4, "mobility": 1.0, "fertility": 0.2, "moisture": 1.0, "nutrition": 0.0, "rarity": 0.45},
+    {"id": "mineral", "density": 1.2, "mobility": 0.2, "fertility": 0.0, "moisture": 0.0, "nutrition": 0.1, "rarity": 0.65},
+    {"id": "food", "density": 0.5, "mobility": 0.5, "fertility": 0.2, "moisture": 0.2, "nutrition": 1.0, "rarity": 0.55}
+  ],
+  "tendencies": [
+    {"id": "forest", "material_weights": {"soil": 0.32, "seed": 0.28, "water": 0.18, "food": 0.1, "sand": 0.08, "mineral": 0.04}, "environment": {"humidity": 0.18, "wind": 0.02, "temperature": 0.02}},
+    {"id": "wetland", "material_weights": {"water": 0.34, "soil": 0.24, "seed": 0.18, "food": 0.1, "sand": 0.08, "mineral": 0.06}, "environment": {"humidity": 0.32, "wind": -0.03, "temperature": -0.02}},
+    {"id": "desert", "material_weights": {"sand": 0.42, "mineral": 0.18, "seed": 0.12, "soil": 0.12, "food": 0.08, "water": 0.08}, "environment": {"humidity": -0.18, "wind": 0.15, "temperature": 0.16}},
+    {"id": "crystal", "material_weights": {"mineral": 0.36, "sand": 0.18, "water": 0.14, "soil": 0.12, "seed": 0.1, "food": 0.1}, "environment": {"humidity": 0.04, "wind": 0.04, "temperature": -0.04}}
+  ],
+  "traits": [
+    {"id": "windy", "modifiers": {"wind": 0.22}},
+    {"id": "mineral_rich", "modifiers": {"mineral_rate": 0.22}},
+    {"id": "humid", "modifiers": {"humidity": 0.18}},
+    {"id": "quiet_growth", "modifiers": {"growth": 0.18}}
+  ],
+  "plants": [
+    {"id": "sprout", "required": {"soil": 2, "seed": 1, "water": 1}, "growth_rate": 0.18}
+  ],
+  "creatures": [
+    {"id": "mote", "preferred_food": "food", "energy_decay": 0.04}
+  ],
+  "events": [
+    {"id": "soft_rain", "condition": "high_keyboard_and_humidity", "discovery": "first_rain"},
+    {"id": "quiet_night", "condition": "high_idle", "discovery": "quiet_night"},
+    {"id": "rainbow", "condition": "rare_balanced_world", "discovery": "rainbow"}
+  ]
+}
+
