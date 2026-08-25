@@ -10,6 +10,6 @@ def test_service_smoke_cycle_persists_safe_state(tmp_path) -> None:
 
     text = service.summary_text()
     assert "Miniatured World" in text
+    assert "発見=" in text
     assert (tmp_path / "settings.json").exists()
     assert (tmp_path / "discovery.json").exists()
-

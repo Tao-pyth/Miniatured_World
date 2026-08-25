@@ -1,169 +1,230 @@
 # Miniatured World Roadmap
 
-This roadmap translates the project specification into development phases. It is intentionally coarse at V0.0; detailed scope, acceptance criteria, and release contracts must be decided through the OODA workflow.
+このロードマップは、企画・要求仕様書を実装フェーズへ分解するための作業用正本です。詳細なスコープ、受け入れ条件、リリース契約は OODA ワークフローで確定します。
 
-## Version Policy
+## バージョン方針
 
-- Human-facing phase label: `V0.0`, `V0.1`, `V0.2`, ...
-- OODA and release metadata should use v-prefixed semantic versions such as `v0.0.0`.
-- `V0.0 / v0.0.0` is the initial project foundation baseline.
+- ユーザー向けフェーズ表記は `V0.0`, `V0.1`, `V0.2` の形式を使う。
+- OODA記録、Gitタグ、Releaseは `v0.0.0` のようなセマンティックバージョンを使う。
+- 現在のリリース済みベースラインは `V0.4 / v0.4.0`。
+- 現在の実装対象は `V0.5 / v0.5.0`。
 
-## V0.0: Project Foundation
+## V0.0: プロジェクト骨子
 
-Goal: create the minimum project skeleton needed for disciplined development.
+目的: 規律ある開発を始めるための最小構成を作る。
 
-Scope:
+スコープ:
 
-- repository folder structure
+- リポジトリ構成
 - README
-- roadmap
-- agent operating rules
-- primary specification reference
-- initial OODA baseline
+- Roadmap
+- エージェント運用ルール
+- 正本仕様書への参照
+- 初期OODAベースライン
 
-Non-scope:
+完了済み。
 
-- runnable application
-- input hook implementation
-- UI implementation
-- simulation implementation
-- packaging and release automation
+## V0.1: 技術PoC
 
-Exit criteria:
+目的: 安全な活動信号を扱い、Windows常駐アプリとしてユーザー作業を邪魔しない実現性を確認する。
 
-- project purpose and principles are visible from the repository root
-- roadmap is aligned with the specification
-- agent rules define how OODA is used
-- future implementation work can be planned without guessing the project direction
+現在の状態: コアの一部は実装済み。本番用Windows入力取得と常駐品質は未確定。
 
-## V0.1: Technical PoC
+候補スコープ:
 
-Goal: prove that the application can observe safe activity signals and run as a Windows resident app without disrupting the user.
+- Windows 11 デスクトップアプリの骨格
+- PySide6 アプリケーション起動
+- タスクトレイ常駐
+- キーボード活動カテゴリ化の検証
+- マウス活動集約の検証
+- プライバシーフィルタの検証
+- 活動フレームモデル
+- 最小ワールド表示
+- seed付きシミュレーションループ
+- Raw Input を永続保存しない証拠
 
-Status: in progress. The first core foundation has been implemented locally; production Windows input acquisition and task tray behavior remain pending.
+主要判断:
 
-Candidate scope:
+- Windows入力APIの選定
+- Low-Level Hook採用可否
+- 活動集約間隔
+- Direct Interaction と Ambient Input の分離
+- 最小プライバシーテスト戦略
 
-- Windows 11 desktop application shell
-- PySide6 application bootstrap
-- task tray residency
-- keyboard activity categorization proof
-- mouse activity aggregation proof
-- privacy filter proof
-- activity frame model
-- minimal world view
-- seeded simulation loop prototype
-- evidence that raw input is not persisted
+## V0.2: シミュレーションプロトタイプ
 
-Key decisions:
+目的: 抽象化されたPC活動が、小さな創発的ワールドを生成できることを確認する。
 
-- Windows input API choice
-- low-level hook adoption or rejection
-- activity aggregation interval
-- Direct Interaction versus Ambient Input separation
-- minimum privacy test strategy
+現在の状態: 決定的シミュレーションコア、コンテンツカタログ、実行状態、活動プロバイダー境界、発見管理、プライバシー安全なスナップショットを実装済み。
 
-## V0.2: Simulation Prototype
+候補スコープ:
 
-Goal: prove that abstract PC activity can generate a small emergent world.
+- 素材定義
+- 落下物または粒子表現
+- グリッドまたはセル型シミュレーション
+- 簡易植物ライフサイクル
+- 1体の生物の有限状態行動
+- 傾向と特性による修飾
+- イベントルール
+- 希少現象フック
+- 決定的乱数プロバイダー
 
-Status: partially implemented locally. The project now has a deterministic simulation core, content catalog, app runtime state, activity provider boundary, discovery manager, and privacy-safe snapshot model. Deeper visual simulation and production UI remain pending.
+主要判断:
 
-Candidate scope:
+- シミュレーション更新頻度
+- 粒子数と生物数の上限
+- コンテンツ定義形式
+- レシピ/ルール評価モデル
 
-- material definitions
-- falling object or particle presentation
-- grid or cellular simulation
-- simple plant lifecycle
-- one creature with finite-state behavior
-- tendency and trait modifiers
-- event rules
-- rare phenomenon hook
-- deterministic random provider
+## V0.3: プロダクトプロトタイプ
 
-Key decisions:
+目的: シミュレーションを、使えるデスクトッププロダクトの形へ近づける。
 
-- simulation update frequency
-- maximum particle and creature budgets
-- content definition format
-- recipe/rule evaluation model
+現在の状態: 実行コマンドと PySide6 のウィンドウ表示・設定・発見画面を実装済み。デスクトップ表示のクリック透過、実トレイ常駐品質、視覚品質検証は継続課題。
 
-## V0.3: Product Prototype
+候補スコープ:
 
-Goal: turn the simulation into a usable desktop product shape.
+- ウィンドウ表示
+- Desktop View 実現性
+- 設定画面
+- 発見画面
+- 一時停止と再開
+- 表示/非表示
+- 基本通知
+- サウンド切替
+- 設定と発見情報の原子的永続化
+- サブシステム単位のエラー分離
+- 性能品質コントロール
 
-Status: in progress locally. Runtime controls and PySide6 Window View screens now exist for World, Settings, and Discovery. Production task tray integration, Desktop View click-through behavior, and full visual QA remain pending.
+主要判断:
 
-Candidate scope:
+- クリック透過デスクトップウィンドウ方式
+- 高DPI挙動
+- ユーザーデータ保存先
+- 発見スキーマ
+- クラッシュと復旧方針
 
-- Window View
-- Desktop View feasibility
-- settings screen
-- discovery screen
-- pause and resume
-- hide/show behavior
-- basic notifications
-- sound toggle
-- atomic settings/discovery persistence
-- error isolation by subsystem
-- performance quality controls
+## V0.4: PySide6画面基盤
 
-Key decisions:
+目的: MVPに必要なアプリ画面の最小面を揃える。
 
-- click-through desktop window approach
-- high-DPI behavior
-- user data storage location
-- discovery schema
-- crash and recovery behavior
+状態: リリース済み。
 
-## V0.4: MVP Release Candidate
+完了内容:
 
-Goal: satisfy the specification's MVP acceptance criteria at release-candidate quality.
+- ウィンドウ表示
+- 設定画面
+- 発見画面
+- 実行コマンド
+- プライバシー安全なスナップショット
+- Qt offscreen スモークテスト
 
-Candidate scope:
+未完了:
 
-- privacy verification
-- 8-hour stability test
-- compatibility checks
-- Windows installer candidate
-- uninstall behavior
-- user-facing documentation
-- performance measurement
-- accessibility pass
-- release packaging
+- 本番用Windows入力取得
+- デスクトップ表示
+- インストーラー
+- 長時間安定性検証
 
-Key decisions:
+## V0.5: 永続化とトレイ基盤
 
-- license
-- distribution method
-- installer technology
-- support policy
-- external communication policy
+目的: ローカルアプリとして継続利用できる最低限の保存・設定・常駐基盤を作る。
 
-## V1.0: MVP Release
+状態: 実装中。
 
-Goal: publish the first stable MVP once V0.4 release-candidate obligations are met.
+スコープ:
 
-Expected characteristics:
+- 既定データ保存先
+- 設定の読み込み/保存
+- 設定画面からの実行時設定更新
+- 発見情報の保存可否設定
+- Qtトレイメニュー基盤
+- `--data-root` と `--ephemeral`
+- ユーザー向けアウトプットの日本語統一
+- 永続化とQtスモークのテスト
 
-- safe-by-default activity observation
-- non-disruptive desktop presence
-- session-based world generation
-- discovery persistence
-- basic settings and privacy controls
-- documented limitations
-- reproducible build and release process
+非スコープ:
 
-## Deferred Candidates
+- 本番用Windowsグローバル入力取得
+- デスクトップ表示のクリック透過
+- 通知の本番実装
+- 音声再生
+- インストーラー
 
-These are intentionally outside the first MVP unless later OODA decisions adopt them:
+## V0.6: Windows活動取得PoC
 
-- advanced fragmentation physics
-- complex creature AI
-- large rare phenomenon catalog
-- external content delivery
-- paid content
-- cloud sync
-- detailed replay
-- multiple simultaneous worlds
-- advanced multi-monitor effects
+目的: プライバシー不変条件を守りながら、実PC活動を抽象信号へ変換できることを検証する。
+
+候補スコープ:
+
+- Windows入力取得方式の比較
+- Raw Input または代替方式のPoC
+- Privacy Filter の境界強化
+- Raw Input 非保存テスト
+- 活動集約器との接続
+- 失敗時の安全停止
+
+## V0.7: Desktop View PoC
+
+目的: 通常作業を邪魔しないデスクトップ表示方式を検証する。
+
+候補スコープ:
+
+- 透過/クリック透過ウィンドウ
+- 最前面制御
+- 高DPI対応
+- マルチモニターの最低限確認
+- 表示品質の視覚確認
+- ウィンドウ表示との切替
+
+## V0.8: MVP Release Candidate
+
+目的: 仕様書のMVP受け入れ条件を、リリース候補品質で満たす。
+
+候補スコープ:
+
+- プライバシー検証
+- 8時間安定性テスト
+- Windows互換性確認
+- インストーラー候補
+- アンインストール挙動
+- ユーザー向けドキュメント
+- 性能測定
+- アクセシビリティ確認
+- リリースパッケージ
+
+主要判断:
+
+- ライセンス
+- 配布方法
+- インストーラー技術
+- サポート方針
+- 外部通信方針
+
+## V1.0: MVPリリース
+
+目的: V0.8のリリース候補条件を満たした後、最初の安定MVPを公開する。
+
+期待状態:
+
+- 安全既定の活動観測
+- 通常作業を邪魔しないデスクトップ常駐
+- セッションベースのワールド生成
+- 発見情報の永続化
+- 基本設定とプライバシー制御
+- 既知制限の明文化
+- 再現可能なビルドとリリース手順
+
+## 後回し候補
+
+以下は、後続OODAで採用しない限り初期MVPの外に置きます。
+
+- 高度な粒子/破片物理
+- 複雑な生物AI
+- 大規模な希少現象カタログ
+- 外部コンテンツ配信
+- 有料コンテンツ
+- クラウド同期
+- 詳細リプレイ
+- 複数ワールド同時実行
+- 高度なマルチモニター演出

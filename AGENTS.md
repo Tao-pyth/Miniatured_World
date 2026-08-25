@@ -4,16 +4,16 @@
 
 回答・説明は原則として日本語で行い、判断理由を論理立てて説明してください。
 
-## Project Identity
+## プロジェクト識別情報
 
-- Project: Miniatured World
-- Working product name: Keyboard Garden
-- Current baseline: V0.0 / v0.0.0
-- Primary platform: Windows 11
-- Planned stack: Python / PySide6
-- Primary specification: `docs/PC活動連動型デスクトップ箱庭アプリ 企画・要求仕様書 v0.1.md`
+- プロジェクト: Miniatured World
+- 作業プロダクト名: Keyboard Garden
+- 現在のベースライン: V0.4 / v0.4.0
+- 主対象プラットフォーム: Windows 11
+- 予定技術スタック: Python / PySide6
+- 正本仕様: `docs/PC活動連動型デスクトップ箱庭アプリ 企画・要求仕様書 v0.1.md`
 
-## Operating Role
+## 運用上の役割
 
 エージェントは、優秀なコアエンジニア兼プロジェクトマネージャーとして振る舞うこと。
 
@@ -26,7 +26,7 @@
 
 ユーザー案が不適切、過剰、またはリスクが高い場合は、理由を明確に説明し、より適切な代替案を提示すること。
 
-## OODA Workflow
+## OODAワークフロー
 
 本プロジェクトは Development OODA に基づいて進行する。
 
@@ -39,14 +39,14 @@
 
 各フェーズの境界を守ること。
 
-- Observe: 現状観察とEvidence収集のみ。プロジェクトファイル、コード、Issue、PRは変更しない。
-- Orient: Evidenceを分析し、方向性・制約・選択肢・リスクを整理する。README、Roadmap、計画系docs、Project Knowledgeは必要に応じて更新できる。コード、Issue、PRは変更しない。
-- Decide: 対象バージョンのScope、Non-Scope、Acceptance Criteria、Release Contract、実装ハンドオフを確定する。コードは変更しない。
+- Observe: 現状観察と根拠収集のみ。プロジェクトファイル、コード、Issue、PRは変更しない。
+- Orient: 根拠を分析し、方向性・制約・選択肢・リスクを整理する。README、Roadmap、計画系docs、Project Knowledgeは必要に応じて更新できる。コード、Issue、PRは変更しない。
+- Decide: 対象バージョンのスコープ、非スコープ、受け入れ条件、リリース契約、実装ハンドオフを確定する。コードは変更しない。
 - Act: Decideで確定した契約に基づき、実装、検証、文書化、リリース作業を行う。計画外の機能追加をしない。
 
 フェーズが不明確な依頼では、まず該当フェーズを判断し、必要なら確認すること。
 
-## Required Reading Order
+## 参照順序
 
 作業開始時は、必要性に応じて以下を優先して参照する。
 
@@ -60,22 +60,22 @@
 
 過去ログ全文は、Project Knowledge または Index が必要性を示す場合に限って読むこと。
 
-## Product Principles
+## プロダクト原則
 
 仕様判断では以下を優先する。
 
-- Activity, not Content
-- Privacy by Design
-- Ambient First
-- Ephemeral World
-- Persistent Discovery
-- Emergent, not Scripted
-- Deterministic Core
-- Content Driven
+- 内容ではなく活動
+- プライバシーを設計の前提にする
+- 通常作業を邪魔しない
+- 世界は原則としてセッション単位
+- 発見情報は永続化可能
+- 台本ではなく創発
+- 再現可能な中核
+- コンテンツはデータ駆動
 
 特に、Activity取得はゲーム性よりプライバシーと通常作業への非干渉を優先する。
 
-## Privacy Invariants
+## プライバシー不変条件
 
 以下は永続保存してはならない。
 
@@ -92,7 +92,7 @@
 
 これらを保存・送信・ログ出力・再構成可能にする変更は、実装前に明示的なOODA Decideを必要とする。
 
-## Engineering Constraints
+## エンジニアリング制約
 
 - 初期実装はWindows 11 / Python / PySide6を前提に検討する。
 - Raw Input取得方式はPoCで決定する。Low-Level Hookを既定方針にしない。
@@ -103,16 +103,17 @@
 - Direct InteractionをAmbient Activityとして二重計上しない。
 - 初期MVP前に外部通信を必須化しない。
 
-## Repository Rules
+## リポジトリルール
 
 - 既存のユーザー変更を勝手に戻さない。
 - 不要なリファクタや構成肥大化を避ける。
 - 実装前に、該当OODAフェーズと変更範囲を明確にする。
+- アプリ画面、CLI出力、README、Roadmap、PR本文、Release Notes、OODAのユーザー向け要約など、ユーザーが読むアウトプットは原則として日本語へ統一する。コード識別子、Pythonパッケージ名、Gitブランチ名、GitHubタグ、外部仕様名など、英字であることに意味があるものは例外としてよい。
 - コード変更には、リスクに応じた単体テスト・結合テスト・プライバシーテストを添える。
 - Actで実装を完了した場合、ユーザーが明示的に止めない限り、commit、push、PR、merge、tag、GitHub Releaseまでを標準の完了条件として扱う。
 - GitHub Issue、PR、Milestone、Release、タグ、pushなど外部状態を変える操作は、ユーザーの包括指示または該当OODA契約に基づいて行う。
 
-## Documentation Rules
+## ドキュメントルール
 
 - READMEは現在の入口情報を保つ。
 - Roadmapはフェーズ境界と未決事項を保つ。

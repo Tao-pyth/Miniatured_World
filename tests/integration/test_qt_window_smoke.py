@@ -27,7 +27,7 @@ def test_main_window_contains_world_settings_and_discovery_tabs() -> None:
     try:
         tabs = window.findChild(QTabWidget)
         assert tabs is not None
-        assert [tabs.tabText(index) for index in range(tabs.count())] == ["World", "Settings", "Discovery"]
+        assert [tabs.tabText(index) for index in range(tabs.count())] == ["ワールド", "設定", "発見"]
         assert window.windowTitle() == "Miniatured World"
     finally:
         window.close()
@@ -45,9 +45,27 @@ def test_main_window_refreshes_from_snapshot_and_keeps_privacy_toggles_safe() ->
         checkboxes = window.findChildren(QCheckBox)
         disabled_unchecked = [box for box in checkboxes if not box.isEnabled() and not box.isChecked()]
         assert len(disabled_unchecked) >= 5
-        assert window.world_tab.status._value.text() == "running"
+        assert window.world_tab.status._value.text() == "稼働中"
     finally:
         window.close()
+
+
+def test_settings_controls_update_runtime_and_persist(tmp_path) -> None:
+    _app()
+    runtime = AppRuntime.start(seed=20260825, provider=DemoActivityProvider(), data_root=tmp_path)
+    window = build_main_window(runtime)
+
+    try:
+        checkbox = window.findChild(QCheckBox, "activity_enabled")
+        assert checkbox is not None
+        checkbox.setChecked(False)
+
+        assert runtime.snapshot().activity_collection_enabled is False
+        assert runtime.service.store is not None
+        assert runtime.service.store.load_settings().activity.enabled is False
+    finally:
+        window.close()
+
 
 
 def test_window_controls_use_runtime_commands_without_closing_window_on_hide() -> None:

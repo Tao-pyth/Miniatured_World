@@ -1,139 +1,144 @@
 # Miniatured World
 
-Miniatured World is a Windows desktop sandbox application concept where ordinary PC activity shapes a small, session-based world.
+Miniatured World は、普段のPC活動が「今日だけの小さな世界」を形づくる、Windows向けデスクトップ箱庭アプリです。
 
-The current working product name in the specification is **Keyboard Garden**.
+仕様書上の作業名は **Keyboard Garden** です。
 
-## Concept
+## コンセプト
 
 普段のPC活動が、今日だけの小さな世界を作る。
 
-The application observes abstract activity characteristics such as keyboard category volume, pointer movement intensity, click activity, scroll activity, rhythm, and idle time. It must not use typed content itself as game content.
+本アプリは、キーボードカテゴリ量、ポインタ移動量、クリック、スクロール、操作リズム、アイドル時間など、抽象化された活動特徴だけを扱います。入力文字列そのものや作業内容をゲーム内容として使う設計にはしません。
 
-## Project Status
+## 現在の状態
 
-Current project baseline: **V0.0 / v0.0.0**
+現在のリリース済みベースライン: **V0.4 / v0.4.0**
 
-Current implementation target: **V0.4 / v0.4.0 PySide6 product screens**
+現在の実装対象: **V0.5 / v0.5.0 永続化とトレイ基盤**
 
-V0.0 is the project foundation phase. The purpose of this phase is to establish repository structure, project documents, agent operating rules, and the first development direction before implementation begins.
+V0.4 では、ローカル実行できるコア、アプリ実行基盤、実行コマンド、PySide6 のウィンドウ表示・設定・発見画面を実装しました。
 
-V0.4 introduces the first local runnable core, app runtime foundation, runtime command surface, and PySide6 Window View with World, Settings, and Discovery tabs. It does not yet include production Windows global input hooks, production task tray behavior, click-through Desktop View, installer packaging, or a formal public release.
+V0.5 では、設定の永続化、既定データ保存先、設定画面からの設定更新、Qtトレイメニュー、CLIの一時実行モード、ユーザー向けアウトプットの日本語統一を進めています。
 
-## Core Product Principles
+まだ本番用のWindowsグローバル入力取得、クリック透過Desktop View、インストーラー、長時間安定性検証は含みません。
 
-- **Activity, not Content**: use activity characteristics, not typed strings or raw input content.
-- **Privacy by Design**: do not persist raw keyboard input, key sequences, mouse coordinates, window titles, screen captures, or clipboard content.
-- **Ambient First**: the app must not interrupt ordinary PC work or gameplay.
-- **Ephemeral World**: each application start creates a new world by default.
-- **Persistent Discovery**: the world disappears, but discovered plants, creatures, and phenomena can remain.
-- **Emergent, not Scripted**: activity changes conditions, and the world emerges from simulation rules.
-- **Deterministic Core**: seed, tendency, traits, and activity frames should reproduce results where practical.
-- **Content Driven**: tendencies, materials, plants, creatures, recipes, events, and phenomena should be data-driven.
+## プロダクト原則
 
-## Initial Target
+- **内容ではなく活動**: 入力文字列や作業内容ではなく、活動特徴だけを使う。
+- **プライバシーを設計の前提にする**: Raw Input、キー入力列、マウス座標、Window Title、画面キャプチャ、クリップボード内容を永続保存しない。
+- **通常作業を邪魔しない**: 通常作業やゲームプレイを妨げない。
+- **世界はセッション単位**: アプリ起動ごとに、その日の世界を生成する。
+- **発見情報は残せる**: 世界は消えても、発見した植物・生物・現象は残せる。
+- **台本ではなく創発**: 活動が条件を変え、シミュレーションから世界が生まれる。
+- **再現可能な中核**: seed、傾向、特性、活動フレームから再現できる設計を優先する。
+- **コンテンツはデータ駆動**: 傾向、素材、植物、生物、レシピ、イベント、現象はデータ駆動化を前提にする。
+
+## 初期ターゲット
 
 - OS: Windows 11 64-bit
-- Planned language/runtime: Python
-- Planned UI framework: PySide6
-- Initial app shape: desktop/window/tray resident app
-- Initial simulation direction: falling objects, grid or cellular simulation, plants, one creature, events, and discovery persistence
+- 言語/ランタイム: Python
+- UIフレームワーク: PySide6
+- アプリ形態: デスクトップ常駐 / ウィンドウ / トレイ
+- 初期シミュレーション: 落下物、グリッドまたはセル、植物、1体の生物、イベント、発見の永続化
 
-## Repository Layout
+## リポジトリ構成
 
 ```text
-assets/                 Visual/audio/source assets placeholder
-config/                 Project and local configuration templates
-docs/                   Planning, requirements, ADRs, and design notes
+assets/                 画像・音声・素材の配置場所
+config/                 設定テンプレート
+docs/                   企画、要求、ADR、設計メモ
 docs/adr/               Architecture Decision Records
-scripts/                Developer utility scripts
-src/miniatured_world/   Application source package
-tests/unit/             Unit tests
-tests/integration/      Integration tests
+scripts/                開発補助スクリプト
+src/miniatured_world/   アプリケーション本体
+tests/unit/             単体テスト
+tests/integration/      結合テスト
 ```
 
-## Local Development
+## ローカル開発
 
-Run tests:
+テスト実行:
 
 ```powershell
 python -m pytest
 ```
 
-Run a privacy-safe smoke simulation without UI:
+UIなしでプライバシー安全なスモーク実行:
 
 ```powershell
 $env:PYTHONPATH='src'
-python -m miniatured_world --no-ui --frames 5
+python -m miniatured_world --no-ui --ephemeral --frames 5
 ```
 
-If PySide6 is installed, the default entry point starts the Qt Window View:
+PySide6 がインストール済みの場合、既定の入口は Qt ウィンドウ表示を起動します。
 
 ```powershell
 $env:PYTHONPATH='src'
 python -m miniatured_world
 ```
 
-The current application entry point uses generated demo activity only. Real Windows activity acquisition remains a later PoC decision.
+既定では、設定と発見情報はユーザーのローカルアプリデータ領域へ保存します。テストや一時確認では `--ephemeral`、保存先を明示したい場合は `--data-root <path>` を使います。
 
-## Primary Specification
+現在のアプリ入口はデモ活動データで動作します。本番のWindows活動取得方式は、後続PoCで決定します。
 
-The current source specification is:
+## 正本仕様
+
+現在の正本仕様は以下です。
 
 - [PC活動連動型デスクトップ箱庭アプリ 企画・要求仕様書 v0.1](docs/PC活動連動型デスクトップ箱庭アプリ%20企画・要求仕様書%20v0.1.md)
 
-When implementation choices conflict with this README, the specification and project OODA decisions take precedence.
+実装判断が README と競合する場合は、仕様書と OODA の決定記録を優先します。
 
-## Development Method
+## 開発方式
 
-This project is developed through the OODA workflow:
+本プロジェクトは OODA ワークフローで進めます。
 
-1. Observe: collect evidence without changing project files.
-2. Orient: interpret evidence and update planning-facing documents when appropriate.
-3. Decide: define scope, acceptance criteria, and release contract.
-4. Act: implement, verify, release, and record evidence.
+1. Observe: 変更せずに証拠を集める。
+2. Orient: 証拠を解釈し、必要に応じて計画系ドキュメントを更新する。
+3. Decide: スコープ、Acceptance Criteria、Release Contract を確定する。
+4. Act: 実装、検証、文書化、リリースを行う。
 
-See [AGENTS.md](AGENTS.md) for project-specific agent rules.
+詳細なエージェント運用ルールは [AGENTS.md](AGENTS.md) を参照してください。
 
-## Privacy Baseline
+## プライバシーベースライン
 
-The following must not be persisted:
+以下は永続保存しません。
 
-- raw keyboard events
-- typed strings
-- key sequences
-- mouse absolute coordinates
-- mouse movement trails
-- click coordinates
-- target application names
-- window titles
-- screen captures
-- clipboard content
+- Raw Keyboard Event
+- 実入力文字列
+- キー入力列
+- マウス絶対座標
+- マウス移動軌跡
+- クリック座標
+- 操作対象アプリケーション
+- Window Title
+- 画面キャプチャ
+- クリップボード内容
 
-Any feature that weakens this baseline requires an explicit OODA decision before implementation.
+このベースラインを弱める機能は、実装前に明示的な OODA Decide を必要とします。
 
-## Implemented Core Surface
+## 実装済みの中核機能
 
-The current core includes:
-
-- sanitized activity events
-- keyboard category filtering
-- pointer delta aggregation
-- Direct Interaction exclusion from Ambient Activity
-- normalized activity frames
-- bundled data-driven content definitions
-- seeded world session creation
-- material generation
-- simple grid settling simulation
-- plant growth
-- one creature behavior loop
-- event and rare phenomenon hooks
-- atomic JSON settings and discovery persistence
-- activity provider abstraction
-- runtime pause/resume and activity collection state
-- privacy-safe UI snapshot model
-- discovery manager
-- grouped settings model
-- runtime commands for show/hide, pause/resume, activity collection, mute, and exit
-- PySide6 Window View with World, Settings, and Discovery tabs
-- Qt smoke tests using offscreen construction
+- サニタイズ済み活動イベント
+- キーボードカテゴリ化
+- ポインタ移動量の集約
+- Direct Interaction と Ambient Activity の分離
+- 正規化された活動フレーム
+- バンドル済みデータ駆動コンテンツ定義
+- seed付きワールドセッション生成
+- 素材生成
+- 簡易グリッド沈降シミュレーション
+- 植物成長
+- 1体の生物行動ループ
+- イベントと希少現象のフック
+- 原子的JSON設定保存
+- 発見情報の保存
+- 既定データ保存先
+- 活動プロバイダー抽象
+- Runtime の一時停止、再開、活動取得切替
+- プライバシー安全なUIスナップショット
+- 発見管理
+- グループ化された設定モデル
+- 表示、停止、活動取得、ミュート、終了の実行コマンド
+- PySide6 のウィンドウ表示・設定・発見画面
+- Qtトレイメニュー基盤
+- offscreen Qt スモークテスト

@@ -3,6 +3,7 @@ from dataclasses import fields
 from miniatured_world.activity import DemoActivityProvider
 from miniatured_world.app.commands import RuntimeCommand
 from miniatured_world.app.runtime import AppRuntime
+from miniatured_world.persistence import JsonStore, Settings, update_settings
 
 
 def test_runtime_tick_with_demo_provider_returns_snapshot() -> None:
@@ -71,3 +72,32 @@ def test_runtime_commands_control_visibility_pause_activity_mute_and_exit() -> N
     assert runtime.handle(RuntimeCommand.UNMUTE).muted is False
     assert runtime.handle(RuntimeCommand.TOGGLE_MUTE).muted is True
     assert runtime.handle(RuntimeCommand.EXIT).running is False
+
+
+def test_runtime_persists_setting_updates(tmp_path) -> None:
+    runtime = AppRuntime.start(seed=42, data_root=tmp_path)
+
+    runtime.update_setting("display", "fps_limit", 60)
+    runtime.update_setting("activity", "enabled", False)
+    runtime.handle(RuntimeCommand.TOGGLE_MUTE)
+
+    loaded = JsonStore(tmp_path).load_settings()
+    assert loaded.display.fps_limit == 60
+    assert loaded.activity.enabled is False
+    assert loaded.sound.enabled is False
+    assert runtime.snapshot().activity_collection_enabled is False
+
+
+def test_runtime_initializes_state_from_persisted_settings(tmp_path) -> None:
+    store = JsonStore(tmp_path)
+    settings = update_settings(Settings(), "general", show_world_on_start=False)
+    settings = update_settings(settings, "activity", enabled=False)
+    settings = update_settings(settings, "sound", enabled=False)
+    store.save_settings(settings)
+
+    runtime = AppRuntime.start(seed=42, data_root=tmp_path)
+    snapshot = runtime.snapshot()
+
+    assert snapshot.world_visible is False
+    assert snapshot.activity_collection_enabled is False
+    assert snapshot.muted is True

@@ -17,10 +17,9 @@ class DiscoveryManager:
             manager.discoveries.update(store.load_discovery().discoveries)
         return manager
 
-    def merge(self, discovered: set[str] | list[str] | tuple[str, ...]) -> DiscoveryRecord:
+    def merge(self, discovered: set[str] | list[str] | tuple[str, ...], *, persist: bool = True) -> DiscoveryRecord:
         self.discoveries.update(str(item) for item in discovered)
         record = DiscoveryRecord(discoveries=sorted(self.discoveries))
-        if self.store:
+        if self.store and persist:
             self.store.save_discovery(record)
         return record
-

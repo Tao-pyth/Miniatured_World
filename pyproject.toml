@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "miniatured-world"
-version = "0.4.0"
-description = "Privacy-first desktop sandbox core driven by abstract PC activity."
+version = "0.5.0"
+description = "抽象化されたPC活動で動く、プライバシー優先のデスクトップ箱庭アプリ基盤。"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [

@@ -29,6 +29,10 @@ class JsonStore:
     def __init__(self, root: Path) -> None:
         self._root = root
 
+    @property
+    def root(self) -> Path:
+        return self._root
+
     def save_settings(self, settings: Settings) -> Path:
         return self._atomic_write("settings.json", asdict(settings))
 

@@ -1,6 +1,6 @@
 import json
 
-from miniatured_world.persistence import DiscoveryRecord, JsonStore, Settings
+from miniatured_world.persistence import DiscoveryRecord, JsonStore, Settings, update_settings
 
 
 def test_json_store_saves_privacy_safe_files(tmp_path) -> None:
@@ -30,3 +30,14 @@ def test_settings_categories_cover_specification() -> None:
     assert settings.privacy.store_raw_input is False
     assert settings.performance.max_particles > 0
     assert settings.data.save_discovery is True
+
+
+def test_update_settings_replaces_nested_section_without_mutating_original() -> None:
+    settings = Settings()
+
+    updated = update_settings(settings, "activity", enabled=False, frame_window_ms=500)
+
+    assert settings.activity.enabled is True
+    assert settings.activity.frame_window_ms == 1000
+    assert updated.activity.enabled is False
+    assert updated.activity.frame_window_ms == 500

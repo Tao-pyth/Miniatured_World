@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,3 +89,10 @@ class Settings:
     performance: PerformanceSettings = field(default_factory=PerformanceSettings)
     data: DataSettings = field(default_factory=DataSettings)
 
+
+def update_settings(settings: Settings, section: str, **changes: Any) -> Settings:
+    if not hasattr(settings, section):
+        raise ValueError(f"未知の設定セクションです: {section}")
+    current_section = getattr(settings, section)
+    updated_section = replace(current_section, **changes)
+    return replace(settings, **{section: updated_section})
