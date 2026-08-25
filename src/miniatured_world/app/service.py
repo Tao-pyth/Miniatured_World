@@ -2,10 +2,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from miniatured_world.activity import ActivityAggregator, PrivacyFilter
-from miniatured_world.persistence import DiscoveryManager, JsonStore, Settings
+from miniatured_world.persistence import DiscoveryManager, JsonStore, Settings, update_settings
 from miniatured_world.world import WorldSession, WorldSimulation
+
+
+_SUMMARY_LABELS = {
+    "forest": "森",
+    "wetland": "湿地",
+    "desert": "砂漠",
+    "crystal": "結晶",
+}
 
 
 @dataclass(slots=True)
@@ -45,16 +54,29 @@ class MiniaturedWorldService:
         self.now_ms += elapsed_ms
         frame = self.aggregator.frame(self.now_ms)
         self.simulation.step(frame)
-        if self.store:
-            self.store.save_settings(self.settings)
-        self.discovery_manager.merge(self.simulation.session.state.discoveries)
+        self._save_settings()
+        self.discovery_manager.merge(
+            self.simulation.session.state.discoveries,
+            persist=self.settings.data.save_discovery,
+        )
         return frame
+
+    def update_settings(self, settings: Settings) -> None:
+        self.settings = settings
+        self._save_settings(force=True)
+
+    def update_setting(self, section: str, field_name: str, value: Any) -> None:
+        self.update_settings(update_settings(self.settings, section, **{field_name: value}))
+
+    def _save_settings(self, *, force: bool = False) -> None:
+        if self.store and (force or self.settings.data.save_settings):
+            self.store.save_settings(self.settings)
 
     def summary_text(self) -> str:
         summary = self.simulation.summary()
         return (
-            f"Miniatured World seed={summary['seed']} "
-            f"tendency={summary['tendency']} "
-            f"discoveries={len(summary['discoveries'])} "
-            f"events={len(summary['events'])}"
+            f"Miniatured World シード={summary['seed']} "
+            f"傾向={_SUMMARY_LABELS.get(str(summary['tendency']), summary['tendency'])} "
+            f"発見={len(summary['discoveries'])} "
+            f"イベント={len(summary['events'])}"
         )

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from miniatured_world.activity import ActivityFrame, ActivityProvider, NullActivityProvider
 from miniatured_world.app.commands import RuntimeCommand
@@ -32,9 +33,16 @@ class AppRuntime:
         provider: ActivityProvider | None = None,
         data_root: Path | None = None,
     ) -> "AppRuntime":
+        service = MiniaturedWorldService.start(seed=seed, data_root=data_root)
+        state = RuntimeState(
+            world_visible=service.settings.general.show_world_on_start,
+            muted=not service.settings.sound.enabled,
+            activity_collection_enabled=service.settings.activity.enabled,
+        )
         return cls(
-            service=MiniaturedWorldService.start(seed=seed, data_root=data_root),
+            service=service,
             provider=provider or NullActivityProvider(),
+            state=state,
         )
 
     def pause(self) -> None:
@@ -48,6 +56,7 @@ class AppRuntime:
 
     def set_activity_collection(self, enabled: bool) -> None:
         self.state.activity_collection_enabled = enabled
+        self.service.update_setting("activity", "enabled", enabled)
 
     def show_world(self) -> None:
         self.state.world_visible = True
@@ -57,9 +66,18 @@ class AppRuntime:
 
     def mute(self) -> None:
         self.state.muted = True
+        self.service.update_setting("sound", "enabled", False)
 
     def unmute(self) -> None:
         self.state.muted = False
+        self.service.update_setting("sound", "enabled", True)
+
+    def update_setting(self, section: str, field_name: str, value: Any) -> None:
+        self.service.update_setting(section, field_name, value)
+        if section == "activity" and field_name == "enabled":
+            self.state.activity_collection_enabled = bool(value)
+        if section == "sound" and field_name == "enabled":
+            self.state.muted = not bool(value)
 
     def handle(self, command: RuntimeCommand | str) -> WorldSnapshot:
         runtime_command = RuntimeCommand(command)
@@ -82,7 +100,10 @@ class AppRuntime:
         elif runtime_command == RuntimeCommand.UNMUTE:
             self.unmute()
         elif runtime_command == RuntimeCommand.TOGGLE_MUTE:
-            self.state.muted = not self.state.muted
+            if self.state.muted:
+                self.unmute()
+            else:
+                self.mute()
         elif runtime_command == RuntimeCommand.EXIT:
             self.stop()
         return self.snapshot()
