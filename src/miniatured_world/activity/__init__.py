@@ -7,13 +7,21 @@ from miniatured_world.activity.models import (
     PointerCategory,
     SanitizedActivityEvent,
 )
-from miniatured_world.activity.provider import ActivityProvider, DemoActivityProvider, NullActivityProvider
+from miniatured_world.activity.provider import (
+    ActivityProvider,
+    ActivityProviderStatus,
+    DemoActivityProvider,
+    NullActivityProvider,
+    create_activity_provider,
+)
 from miniatured_world.activity.privacy import PrivacyFilter
+from miniatured_world.activity.windows_idle import WindowsIdleActivityProvider
 
 __all__ = [
     "ActivityAggregator",
     "ActivityFrame",
     "ActivityProvider",
+    "ActivityProviderStatus",
     "ActivitySource",
     "ActivityType",
     "DemoActivityProvider",
@@ -22,4 +30,6 @@ __all__ = [
     "PointerCategory",
     "PrivacyFilter",
     "SanitizedActivityEvent",
+    "WindowsIdleActivityProvider",
+    "create_activity_provider",
 ]

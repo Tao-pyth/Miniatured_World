@@ -18,6 +18,8 @@ def test_runtime_tick_with_demo_provider_returns_snapshot() -> None:
     assert snapshot.tendency
     assert snapshot.creature_count >= 1
     assert snapshot.activity_level in {"quiet", "calm", "active", "intense"}
+    assert snapshot.provider_status.name == "demo"
+    assert snapshot.provider_status.display_name == "デモ"
 
 
 def test_runtime_pause_prevents_world_time_advancement() -> None:

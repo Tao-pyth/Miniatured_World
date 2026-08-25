@@ -4,7 +4,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from miniatured_world.app.service import MiniaturedWorldService
+from miniatured_world.activity import create_activity_provider
+from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.persistence import default_data_root
 
 
@@ -30,23 +31,29 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-ui", action="store_true", help="Qt画面を起動せず、CLIでスモーク実行します。")
     parser.add_argument("--data-root", type=Path, default=None, help="設定と発見情報を保存するディレクトリ。")
     parser.add_argument("--ephemeral", action="store_true", help="設定と発見情報を保存しない一時実行にします。")
+    parser.add_argument(
+        "--activity-provider",
+        choices=("auto", "demo", "none", "windows-idle"),
+        default="auto",
+        help="活動取得元を選択します。",
+    )
     args = parser.parse_args(argv)
     data_root = None if args.ephemeral else args.data_root or default_data_root()
+    provider = create_activity_provider(args.activity_provider)
 
     if not args.no_ui:
         try:
             from miniatured_world.app.qt_app import run_qt_app
 
-            return run_qt_app(seed=args.seed, data_root=data_root)
+            return run_qt_app(seed=args.seed, data_root=data_root, provider=provider)
         except ImportError:
             pass
 
-    service = MiniaturedWorldService.start(seed=args.seed, data_root=data_root)
-    for frame_index in range(args.frames):
-        service.inject_demo_activity(frame_index)
-        service.step()
+    runtime = AppRuntime.start(seed=args.seed, provider=provider, data_root=data_root)
+    for _ in range(args.frames):
+        runtime.tick()
 
-    print(service.summary_text())
+    print(runtime.service.summary_text())
     return 0
 
 
