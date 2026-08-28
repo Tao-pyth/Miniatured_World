@@ -9,8 +9,9 @@ htmlcov/
 venv/
 dist/
 build/
+logs/
+*.spec
 *.egg-info/
 .env
 .env.*
 !/.env.example
-

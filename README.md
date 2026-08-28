@@ -12,9 +12,9 @@ Miniatured World は、普段のPC活動が「今日だけの小さな世界」�
 
 ## 現在の状態
 
-現在のリリース済みベースライン: **V0.7 / v0.7.0**
+現在のリリース済みベースライン: **V0.8 / v0.8.0**
 
-現在の次候補: **V0.8 / v0.8.0 MVP Release Candidate**
+現在の次候補: **V1.0 / v1.0.0 MVPリリース**
 
 V0.4 では、ローカル実行できるコア、アプリ実行基盤、実行コマンド、PySide6 のウィンドウ表示・設定・発見画面を実装しました。
 
@@ -24,7 +24,9 @@ V0.6 では、Windowsから安全に取得できる最小の実活動信号と�
 
 V0.7 では、表示モード、最前面、クリック透過、不透明度の設定をPySide6ウィンドウ属性へ反映するデスクトップ表示PoCを実装しました。
 
-まだ本番用のWindowsグローバルキーボード/マウスカテゴリ取得、OSレベルで保証された完全クリック透過、インストーラー、長時間安定性検証は含みません。
+V0.8 では、MVP RC本体ではなくRC準備版として、Windows実活動Provider、PyInstaller exeビルド手順、MIT License、プライバシー監査と実機検証手順を追加しました。
+
+まだMVP RC合格宣言、OSレベルで保証された完全クリック透過、インストーラー、コード署名、自動更新、8時間安定性テストの実施済み記録は含みません。
 
 ## プロダクト原則
 
@@ -80,7 +82,14 @@ $env:PYTHONPATH='src'
 python -m miniatured_world --no-ui --ephemeral --frames 5 --activity-provider demo
 ```
 
-活動取得元は `auto`、`demo`、`none`、`windows-idle` から選べます。`windows-idle` はWindowsの最終入力時刻からアイドル時間だけを取得するPoCで、入力文字列、キー列、座標、Window Title、画面キャプチャ、クリップボード内容は扱いません。
+活動取得元は `auto`、`demo`、`none`、`windows-idle`、`windows-global` から選べます。`windows-idle` はWindowsの最終入力時刻からアイドル時間だけを取得するPoCです。`windows-global` はWindows Raw Inputを即時にカテゴリ、移動量、クリック、スクロールへ変換する実活動取得元です。どちらも入力文字列、キー列、座標、Window Title、画面キャプチャ、クリップボード内容は保存しません。
+
+Windows実活動取得を明示して実行:
+
+```powershell
+$env:PYTHONPATH='src'
+python -m miniatured_world --no-ui --ephemeral --frames 5 --activity-provider windows-global
+```
 
 Settings画面の表示設定では、`window` / `desktop` / `preview` の表示モード、常に最前面、クリック透過、不透明度を変更できます。`desktop` はフレームレス、ツールウィンドウ、最前面、透明背景を適用するPoCです。クリック透過はQtのマウスイベント透過として扱い、OSレベルの完全透過保証は後続検証に残しています。
 
@@ -93,7 +102,28 @@ python -m miniatured_world
 
 既定では、設定と発見情報はユーザーのローカルアプリデータ領域へ保存します。テストや一時確認では `--ephemeral`、保存先を明示したい場合は `--data-root <path>` を使います。
 
-現在のアプリ入口はデモ活動データで動作します。本番のWindows活動取得方式は、後続PoCで決定します。
+Windows以外、またはWindows実活動取得を初期化できない環境では、安全な取得不能状態またはデモ取得元へフォールバックします。
+
+## 配布ビルド
+
+PyInstallerを使うWindows向けexeビルド手順を用意しています。
+
+```powershell
+python -m pip install -e ".[packaging]"
+.\scripts\build_windows_exe.ps1
+```
+
+生成物は `dist\MiniaturedWorld.exe` です。V0.8ではmsi等のインストーラー、コード署名、自動更新は含みません。
+
+## 安定性検証ログ
+
+8時間安定性検証では、exeからJSONL形式の診断ログを出力できます。
+
+```powershell
+.\dist\MiniaturedWorld.exe --no-ui --ephemeral --activity-provider windows-global --duration-seconds 28800 --tick-interval-ms 1000 --realtime --stability-log logs\v0.8.0-stability-8h.jsonl
+```
+
+ログにはProvider状態、summary、World状態、CPU時間、メモリ使用量を記録します。入力文字列、キー列、座標、Window Title、画面内容、クリップボード内容は記録しません。
 
 ## 正本仕様
 
@@ -131,6 +161,14 @@ python -m miniatured_world
 
 このベースラインを弱める機能は、実装前に明示的な OODA Decide を必要とします。
 
+V0.8では外部通信、テレメトリ、クラウド同期、外部コンテンツ配信は未実装です。将来導入する場合も、通信目的、送信データ、無効化方法を明示し、Raw Inputや復元可能な情報は送信しません。
+
+## ライセンスとサポート
+
+ライセンスは [MIT License](LICENSE) です。
+
+サポート方針は、個人開発の実験版としてGitHub Issueのみです。互換性保証、個別環境サポート、商用サポートは現時点では提供しません。
+
 ## 実装済みの中核機能
 
 - サニタイズ済み活動イベント
@@ -159,6 +197,7 @@ python -m miniatured_world
 - Qtトレイメニュー基盤
 - 活動取得状態モデル
 - Windowsアイドル取得元PoC
+- Windows実活動Provider
 - CLIの活動取得元選択
 - World画面の活動取得状態表示
 - offscreen Qt スモークテスト
