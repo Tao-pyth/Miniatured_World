@@ -15,6 +15,7 @@ from miniatured_world.activity.provider import (
     create_activity_provider,
 )
 from miniatured_world.activity.privacy import PrivacyFilter
+from miniatured_world.activity.windows_global import WindowsGlobalActivityProvider
 from miniatured_world.activity.windows_idle import WindowsIdleActivityProvider
 
 __all__ = [
@@ -31,5 +32,6 @@ __all__ = [
     "PrivacyFilter",
     "SanitizedActivityEvent",
     "WindowsIdleActivityProvider",
+    "WindowsGlobalActivityProvider",
     "create_activity_provider",
 ]

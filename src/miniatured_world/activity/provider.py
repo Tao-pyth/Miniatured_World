@@ -76,11 +76,16 @@ def create_activity_provider(mode: str = "auto") -> ActivityProvider:
         from miniatured_world.activity.windows_idle import WindowsIdleActivityProvider
 
         return WindowsIdleActivityProvider()
+    if normalized == "windows-global":
+        from miniatured_world.activity.windows_global import WindowsGlobalActivityProvider
+
+        return WindowsGlobalActivityProvider()
     if normalized == "auto":
+        from miniatured_world.activity.windows_global import WindowsGlobalActivityProvider
         from miniatured_world.activity.windows_idle import WindowsIdleActivityProvider
 
-        provider = WindowsIdleActivityProvider()
-        if provider.status().available:
-            return provider
+        for provider in (WindowsGlobalActivityProvider(), WindowsIdleActivityProvider()):
+            if provider.status().available:
+                return provider
         return DemoActivityProvider()
     raise ValueError(f"未知の活動取得元です: {mode}")
