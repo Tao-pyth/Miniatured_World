@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "miniatured-world"
-version = "0.8.0"
+version = "0.8.1"
 description = "抽象化されたPC活動で動く、プライバシー優先のデスクトップ箱庭アプリ基盤。"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -14,9 +14,9 @@ authors = [
 dependencies = []
 
 [project.optional-dependencies]
-ui = ["PySide6>=6.7"]
+ui = ["PySide6>=6.7,<6.10"]
 dev = ["pytest>=8.0"]
-packaging = ["pyinstaller>=6.0"]
+packaging = ["pyinstaller>=6.22"]
 
 [project.scripts]
 miniatured-world = "miniatured_world.__main__:main"

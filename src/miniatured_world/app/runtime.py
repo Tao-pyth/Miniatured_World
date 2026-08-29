@@ -20,7 +20,7 @@ class RuntimeState:
     last_frame: ActivityFrame = field(default_factory=ActivityFrame.quiet)
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, weakref_slot=True)
 class AppRuntime:
     service: MiniaturedWorldService
     provider: ActivityProvider = field(default_factory=NullActivityProvider)

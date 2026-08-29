@@ -12,7 +12,7 @@ Miniatured World は、普段のPC活動が「今日だけの小さな世界」�
 
 ## 現在の状態
 
-現在のリリース済みベースライン: **V0.8 / v0.8.0**
+現在のリリース済みベースライン: **V0.8 / v0.8.1**
 
 現在の次候補: **V1.0 / v1.0.0 MVPリリース**
 
@@ -26,7 +26,9 @@ V0.7 では、表示モード、最前面、クリック透過、不透明度の
 
 V0.8 では、MVP RC本体ではなくRC準備版として、Windows実活動Provider、PyInstaller exeビルド手順、MIT License、プライバシー監査と実機検証手順を追加しました。
 
-まだMVP RC合格宣言、OSレベルで保証された完全クリック透過、インストーラー、コード署名、自動更新、8時間安定性テストの実施済み記録は含みません。
+V0.8.1 では、GUIイベントループ、Qt描画、ウィンドウ更新を含めたGUIあり8時間安定性検証ログ出力と自動終了を追加し、PySide6 6.9系で作成した単体exeによる実機8時間検証を完了しました。PySide6 6.10系で作成したexeはGUI起動に失敗するため、配布ビルドは確認済みのPySide6 6.9系に固定します。
+
+まだMVP RC合格宣言、OSレベルで保証された完全クリック透過、インストーラー、コード署名、自動更新は含みません。
 
 ## プロダクト原則
 
@@ -109,11 +111,11 @@ Windows以外、またはWindows実活動取得を初期化できない環境で
 PyInstallerを使うWindows向けexeビルド手順を用意しています。
 
 ```powershell
-python -m pip install -e ".[packaging]"
+python -m pip install -e ".[ui,packaging]"
 .\scripts\build_windows_exe.ps1
 ```
 
-生成物は `dist\MiniaturedWorld.exe` です。V0.8ではmsi等のインストーラー、コード署名、自動更新は含みません。
+GUI配布ビルドでは、PySide6 が `>=6.7,<6.10` の範囲に収まっていることを確認してください。生成物は `dist\MiniaturedWorld.exe` です。V0.8ではmsi等のインストーラー、コード署名、自動更新は含みません。
 
 ## 安定性検証ログ
 
@@ -121,6 +123,12 @@ python -m pip install -e ".[packaging]"
 
 ```powershell
 .\dist\MiniaturedWorld.exe --no-ui --ephemeral --activity-provider windows-global --duration-seconds 28800 --tick-interval-ms 1000 --realtime --stability-log logs\v0.8.0-stability-8h.jsonl
+```
+
+GUIありで8時間安定性検証を行う場合は、`--no-ui` を付けずに実行します。
+
+```powershell
+.\dist\MiniaturedWorld.exe --ephemeral --activity-provider windows-global --duration-seconds 28800 --tick-interval-ms 1000 --stability-log logs\v0.8.1-gui-stability-8h.jsonl
 ```
 
 ログにはProvider状態、summary、World状態、CPU時間、メモリ使用量を記録します。入力文字列、キー列、座標、Window Title、画面内容、クリップボード内容は記録しません。
