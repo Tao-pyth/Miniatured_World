@@ -50,9 +50,19 @@ def main(argv: list[str] | None = None) -> int:
         try:
             from miniatured_world.app.qt_app import run_qt_app
 
-            return run_qt_app(seed=args.seed, data_root=data_root, provider=provider)
-        except ImportError:
-            pass
+            duration_seconds = args.duration_seconds
+            if args.stability_log and duration_seconds is None:
+                duration_seconds = max(1, args.frames) * args.tick_interval_ms / 1000
+            return run_qt_app(
+                seed=args.seed,
+                data_root=data_root,
+                provider=provider,
+                duration_seconds=duration_seconds,
+                tick_interval_ms=args.tick_interval_ms,
+                stability_log=args.stability_log,
+            )
+        except ImportError as error:
+            print(f"Qt画面を起動できないためCLI実行へ切り替えます: {error}", file=sys.stderr)
 
     runtime = AppRuntime.start(seed=args.seed, provider=provider, data_root=data_root)
     if args.stability_log:

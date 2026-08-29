@@ -1,4 +1,5 @@
 import os
+import json
 
 import pytest
 
@@ -141,5 +142,45 @@ def test_window_controls_use_runtime_commands_without_closing_window_on_hide() -
         assert runtime.snapshot().world_visible is False
         assert window.isHidden() is False
         assert window.world_tab.preview.isHidden() is True
+    finally:
+        window.close()
+
+
+def test_gui_stability_log_completes_without_exposing_private_fields(tmp_path) -> None:
+    _app()
+    log_path = tmp_path / "gui-stability.jsonl"
+    runtime = AppRuntime.start(seed=20260825, provider=DemoActivityProvider(), data_root=tmp_path)
+    completed: list[bool] = []
+    window = build_main_window(
+        runtime,
+        duration_seconds=2,
+        tick_interval_ms=1000,
+        stability_log=log_path,
+        on_stability_complete=lambda: completed.append(True),
+    )
+    window.timer.stop()
+
+    try:
+        window.advance()
+        window.advance()
+
+        entries = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
+        assert [entry["event"] for entry in entries] == ["start", "tick", "tick", "completed"]
+        assert entries[-1]["frames"] == 2
+        assert entries[-1]["snapshot"]["provider"]["name"] == "demo"
+        assert runtime.snapshot().running is False
+        assert completed == [True]
+
+        serialized = json.dumps(entries, ensure_ascii=False)
+        forbidden = {
+            "super_secret_password",
+            "key_sequence",
+            "mouse_x",
+            "mouse_y",
+            "window_title",
+            "clipboard",
+            "screen_capture",
+        }
+        assert all(term not in serialized for term in forbidden)
     finally:
         window.close()

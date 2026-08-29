@@ -1,14 +1,24 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
+from pathlib import Path
 
 from miniatured_world.app.commands import RuntimeCommand
 from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.app.snapshot import WorldSnapshot
+from miniatured_world.app.stability import StabilityLogWriter
 from miniatured_world.persistence.settings import Settings
 
 
-def build_main_window(runtime: AppRuntime):
+def build_main_window(
+    runtime: AppRuntime,
+    *,
+    duration_seconds: float | None = None,
+    tick_interval_ms: int = 1000,
+    stability_log: Path | None = None,
+    on_stability_complete: Callable[[], None] | None = None,
+):
     from PySide6.QtCore import Qt, QTimer
     from PySide6.QtGui import QColor, QPainter, QPen
     from PySide6.QtWidgets import (
@@ -240,6 +250,27 @@ def build_main_window(runtime: AppRuntime):
         def __init__(self, runtime: AppRuntime) -> None:
             super().__init__()
             self.runtime = runtime
+            self._tick_interval_ms = tick_interval_ms
+            self._stability_frame = 0
+            self._stability_completed = False
+            self._stability_frame_limit = (
+                None
+                if duration_seconds is None
+                else max(1, math.ceil(duration_seconds * 1000 / self._tick_interval_ms))
+            )
+            self._stability_logger = (
+                None
+                if stability_log is None
+                else StabilityLogWriter(
+                    log_path=stability_log,
+                    duration_seconds=duration_seconds
+                    if duration_seconds is not None
+                    else self._tick_interval_ms / 1000,
+                    tick_interval_ms=self._tick_interval_ms,
+                    realtime=True,
+                )
+            )
+            self._on_stability_complete = on_stability_complete
             self._display_signature: tuple[str, bool, bool, float] | None = None
             self.setWindowTitle("Miniatured World")
             self.setMinimumSize(900, 620)
@@ -257,19 +288,67 @@ def build_main_window(runtime: AppRuntime):
 
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.advance)
-            self.timer.start(1000)
-            self.refresh(runtime.snapshot())
+            self.timer.start(self._tick_interval_ms)
+            snapshot = runtime.snapshot()
+            self.refresh(snapshot)
+            if self._stability_logger is not None:
+                self._stability_logger.start(snapshot)
 
         def advance(self) -> None:
-            snapshot = self.runtime.tick()
-            self.refresh(snapshot)
-            if not snapshot.running:
-                self.close()
+            try:
+                snapshot = self.runtime.tick(elapsed_ms=self._tick_interval_ms)
+                self._stability_frame += 1
+                self.refresh(snapshot)
+                if self._stability_logger is not None:
+                    self._stability_logger.tick(self._stability_frame, snapshot, self.runtime.service.summary_text())
+                if self._stability_frame_limit is not None and self._stability_frame >= self._stability_frame_limit:
+                    self._complete_stability_run(snapshot)
+                    return
+                if not snapshot.running:
+                    self._close_stability_log(cancelled=False)
+                    self.close()
+            except BaseException as error:
+                if self._stability_logger is not None:
+                    self._stability_logger.error(error)
+                    self._stability_logger.close()
+                raise
 
         def refresh(self, snapshot: WorldSnapshot) -> None:
             _apply_display_settings(self)
             self.world_tab.refresh(snapshot)
             self.discovery_tab.refresh(snapshot)
+
+        def closeEvent(self, event) -> None:  # noqa: N802
+            self._close_stability_log(cancelled=True)
+            super().closeEvent(event)
+
+        def _complete_stability_run(self, snapshot: WorldSnapshot) -> None:
+            if self._stability_completed:
+                return
+            self._stability_completed = True
+            self.runtime.stop()
+            if self._stability_logger is not None:
+                self._stability_logger.completed(
+                    self._stability_frame,
+                    snapshot,
+                    self.runtime.service.summary_text(),
+                )
+                self._stability_logger.close()
+            if self._on_stability_complete is not None:
+                self._on_stability_complete()
+            else:
+                self.close()
+
+        def _close_stability_log(self, *, cancelled: bool) -> None:
+            if self._stability_logger is None or self._stability_logger.closed or self._stability_completed:
+                return
+            if cancelled:
+                self._stability_logger.cancelled(
+                    self._stability_frame,
+                    self.runtime.snapshot(),
+                    self.runtime.service.summary_text(),
+                )
+            self._stability_logger.close()
 
     def _tool_button(label: str, icon: QStyle.StandardPixmap, command: RuntimeCommand) -> QToolButton:
         button = QToolButton()
