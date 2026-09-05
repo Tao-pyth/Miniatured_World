@@ -8,7 +8,7 @@
 
 - プロジェクト: Miniatured World
 - 作業プロダクト名: Keyboard Garden
-- 現在のベースライン: V0.8 / v0.8.1
+- 現在のベースライン: V0.8 / v0.8.2
 - 主対象プラットフォーム: Windows 11
 - 予定技術スタック: Python / PySide6
 - 正本仕様: `docs/PC活動連動型デスクトップ箱庭アプリ 企画・要求仕様書 v0.1.md`

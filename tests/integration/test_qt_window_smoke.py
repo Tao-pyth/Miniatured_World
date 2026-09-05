@@ -12,6 +12,7 @@ from PySide6.QtWidgets import QApplication, QCheckBox, QComboBox, QSlider, QTabW
 
 from miniatured_world.activity import DemoActivityProvider
 from miniatured_world.app.commands import RuntimeCommand
+import miniatured_world.app.qt_widgets as qt_widgets
 from miniatured_world.app.qt_widgets import build_main_window
 from miniatured_world.app.runtime import AppRuntime
 
@@ -70,8 +71,10 @@ def test_settings_controls_update_runtime_and_persist(tmp_path) -> None:
         window.close()
 
 
-def test_display_settings_apply_window_attributes(tmp_path) -> None:
+def test_display_settings_apply_window_attributes(tmp_path, monkeypatch) -> None:
     _app()
+    native_calls: list[bool] = []
+    monkeypatch.setattr(qt_widgets, "set_windows_click_through", lambda hwnd, enabled: native_calls.append(enabled) or True)
     runtime = AppRuntime.start(seed=20260825, provider=DemoActivityProvider(), data_root=tmp_path)
     window = build_main_window(runtime)
     window.show()
@@ -88,12 +91,31 @@ def test_display_settings_apply_window_attributes(tmp_path) -> None:
         assert window.testAttribute(Qt.WidgetAttribute.WA_TranslucentBackground) is True
         assert window.testAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents) is True
         assert round(window.windowOpacity(), 2) == 0.65
+        assert native_calls[-1] is True
 
         runtime.update_setting("display", "view_mode", "window")
         window.refresh(runtime.snapshot())
 
         assert window.testAttribute(Qt.WidgetAttribute.WA_TranslucentBackground) is False
         assert window.testAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents) is False
+        assert native_calls[-1] is False
+    finally:
+        window.close()
+
+
+def test_display_opacity_is_clamped_to_safe_range(tmp_path) -> None:
+    _app()
+    runtime = AppRuntime.start(seed=20260825, provider=DemoActivityProvider(), data_root=tmp_path)
+    window = build_main_window(runtime)
+
+    try:
+        runtime.update_setting("display", "opacity", 1.5)
+        window.refresh(runtime.snapshot())
+        assert round(window.windowOpacity(), 2) == 1.0
+
+        runtime.update_setting("display", "opacity", 0.05)
+        window.refresh(runtime.snapshot())
+        assert round(window.windowOpacity(), 2) == 0.2
     finally:
         window.close()
 
