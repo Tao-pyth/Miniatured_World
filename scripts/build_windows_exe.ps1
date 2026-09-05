@@ -37,7 +37,11 @@ if ($LASTEXITCODE -ne 0) {
     --hidden-import PySide6.QtWidgets `
     --hidden-import PySide6.QtNetwork `
     --add-data "src\miniatured_world\content\defaults.json;miniatured_world\content" `
-    --add-data "src\miniatured_world\assets\little_laboratory_background.jpg;miniatured_world\assets" `
+    --add-data "src\miniatured_world\assets;miniatured_world\assets" `
     src\miniatured_world\__main__.py
+
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
 
 Write-Host "Build completed: dist\$Name.exe"

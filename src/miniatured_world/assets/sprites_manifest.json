@@ -1,0 +1,75 @@
+{
+  "character_source_sha256": "6de01adc46aab05c6b7a5cdcf981db5c2da7bb5f0020df68f3740a03072d7c70",
+  "cauldron_source_sha256": "eba5f828f05af1a03856df4fdbea35d8ff073c2ec3b2433e7bb5e44ab0cadded",
+  "character_boxes_xywh": {
+    "idle": [
+      16,
+      88,
+      148,
+      163
+    ],
+    "work": [
+      327,
+      300,
+      154,
+      160
+    ],
+    "success": [
+      488,
+      300,
+      151,
+      161
+    ],
+    "failure": [
+      641,
+      303,
+      153,
+      159
+    ],
+    "rest": [
+      2,
+      502,
+      161,
+      127
+    ]
+  },
+  "cauldron_columns": [
+    105,
+    191,
+    278,
+    366,
+    453,
+    541,
+    629,
+    717,
+    805
+  ],
+  "cauldron_rows_y": {
+    "idle": [
+      55,
+      151
+    ],
+    "receive": [
+      176,
+      274
+    ],
+    "failure": [
+      297,
+      405
+    ],
+    "success": [
+      424,
+      531
+    ]
+  },
+  "character_canvas": [
+    192,
+    192
+  ],
+  "character_baseline": 180,
+  "cauldron_canvas": [
+    96,
+    128
+  ],
+  "cauldron_baseline": 120
+}
