@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QApplication
 from miniatured_world.activity import DemoActivityProvider
 from miniatured_world.app.qt_widgets import build_main_window
 from miniatured_world.app.runtime import AppRuntime
+from miniatured_world.app.lab import WORKFLOW
 
 
 def test_real_animation_timer_runs_without_ticking_simulation_and_stops_when_hidden() -> None:
@@ -110,6 +111,38 @@ def test_all_cauldron_frames_change_rendered_pixels_at_multiple_sizes() -> None:
                     frames.add(bytes(image.constBits()))
                     preview.animation.advance(125)
                 assert len(frames) == 8
+    finally:
+        preview.close()
+        window.close()
+        runtime.stop()
+
+
+def test_workflow_props_render_each_stage_at_multiple_window_sizes() -> None:
+    app = QApplication.instance() or QApplication([])
+    runtime = AppRuntime.start(seed=17, provider=DemoActivityProvider())
+    window = build_main_window(runtime)
+    window.timer.stop()
+    preview = window.world_tab.preview
+    preview.setParent(None)
+    before = runtime.snapshot()
+    base = replace(before, materials={}, discoveries=(), events=())
+    try:
+        for size in ((640, 427), (1280, 720), (900, 620)):
+            preview.resize(*size)
+            preview.set_snapshot(replace(base, seed=18))
+            preview.set_snapshot(base)
+            preview.set_snapshot(replace(base, materials={"water": 1, "seed": 1}))
+            renders = set()
+            for phase, duration in WORKFLOW:
+                preview.animation.advance(duration // 2)
+                assert preview.animation.scene.workflow_phase == phase
+                image = QImage(*size, QImage.Format.Format_RGB32)
+                preview.render(image)
+                renders.add(bytes(image.constBits()))
+                preview.animation.advance(duration - duration // 2)
+            assert len(renders) == len(WORKFLOW)
+            assert preview.animation.scene.product_visible
+        assert runtime.snapshot() == before
     finally:
         preview.close()
         window.close()

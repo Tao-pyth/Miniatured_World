@@ -1,7 +1,7 @@
 from dataclasses import replace
 
 from miniatured_world.activity import ActivityProviderStatus
-from miniatured_world.app.lab import LabAnimation, derive_lab_scene
+from miniatured_world.app.lab import CYCLE_MS, WORKFLOW, LabAnimation, derive_lab_scene, material_transfer_progress
 from miniatured_world.app.snapshot import WorldSnapshot
 
 
@@ -139,3 +139,108 @@ def test_quiet_inventory_does_not_keep_materials_flying() -> None:
     assert "material_drop" not in scene.effects
     empty = derive_lab_scene(_snapshot(activity_level="intense", intensity=0.9))
     assert "material_drop" not in empty.effects
+
+
+def test_material_delivery_completes_ordered_workflow_without_changing_world() -> None:
+    animation = LabAnimation()
+    before = _snapshot(activity_level="active", intensity=0.5)
+    after = replace(before, materials={"seed": 1, "water": 1}, world_time=2)
+    animation.observe(before)
+    animation.observe(after)
+    states = []
+    for phase, duration in WORKFLOW:
+        scene = animation.scene
+        assert scene.workflow_phase == phase
+        assert scene.phase_progress == 0
+        states.append({item.placement.key: item.state for item in scene.gimmicks})
+        animation.advance(duration)
+    assert states[0]["basket"] == "arriving"
+    assert states[1]["book"] == "turning"
+    assert states[2]["basket"] == "taking"
+    assert states[3]["cauldron"] == "cauldron_receive"
+    assert states[4]["product"] == "placing"
+    assert animation.scene.workflow_phase == "idle"
+    assert animation.scene.product_visible
+    assert before.materials == {}
+    assert after.materials == {"seed": 1, "water": 1}
+    assert after.discoveries == ()
+
+
+def test_continuous_activity_coalesces_deliveries_without_restarting_reading() -> None:
+    animation = LabAnimation()
+    snapshot = _snapshot(activity_level="active", intensity=0.5)
+    animation.observe(snapshot)
+    animation.observe(replace(snapshot, materials={"seed": 1}))
+    animation.advance(1800)
+    progress = animation.scene.phase_progress
+    for count in range(2, 30):
+        current = replace(snapshot, materials={"seed": count}, world_time=count)
+        animation.observe(current)
+        animation.observe(current)
+    assert animation.scene.workflow_phase == "read"
+    assert animation.scene.phase_progress == progress
+    animation.advance(CYCLE_MS - 1800)
+    assert animation.scene.workflow_phase == "arrive"
+    assert animation.scene.product_visible
+    animation.advance(CYCLE_MS)
+    assert animation.scene.workflow_phase == "idle"
+    animation.advance(CYCLE_MS)
+    assert animation.scene.workflow_phase == "idle"
+
+
+def test_workflow_pause_visibility_and_session_reset() -> None:
+    animation = LabAnimation()
+    base = _snapshot(activity_level="active", intensity=0.5)
+    delivered = replace(base, materials={"mineral": 1}, world_time=2)
+    animation.observe(base)
+    animation.observe(delivered)
+    animation.advance(1900)
+    reading = animation.scene
+    animation.observe(replace(delivered, paused=True))
+    animation.advance(2000)
+    assert animation.scene.character_state == "rest"
+    animation.observe(replace(delivered, world_visible=False))
+    animation.advance(2000)
+    animation.observe(delivered)
+    assert animation.scene == reading
+    animation.observe(replace(delivered, seed=2))
+    assert animation.scene.workflow_phase == "idle"
+    assert not animation.scene.product_visible
+    assert animation.scene.batch_materials == ()
+
+
+def test_inventory_decrease_and_disabled_collection_do_not_start_delivery() -> None:
+    animation = LabAnimation()
+    base = _snapshot(materials={"seed": 4}, discoveries=("saved",))
+    animation.observe(base)
+    assert animation.scene.workflow_phase == "idle"
+    animation.observe(replace(base, materials={"seed": 3}, world_time=2))
+    assert animation.scene.workflow_phase == "idle"
+    animation.observe(replace(base, materials={"seed": 8}, world_time=3, activity_collection_enabled=False))
+    assert animation.scene.workflow_phase == "idle"
+
+
+def test_work_positions_are_continuous_across_phase_boundaries() -> None:
+    animation = LabAnimation()
+    base = _snapshot()
+    animation.observe(base)
+    animation.observe(replace(base, materials={"water": 1}))
+    for _, duration in WORKFLOW:
+        animation.advance(duration - 1)
+        previous = animation.scene.character_position
+        animation.advance(1)
+        current = animation.scene.character_position
+        assert all(abs(a - b) < 0.01 for a, b in zip(previous, current))
+
+
+def test_each_material_arrives_and_leaves_basket_once_before_phase_ends() -> None:
+    for count in range(1, 7):
+        for index in range(count):
+            for phase in ("arrive", "collect"):
+                values = [material_transfer_progress(phase, step / 100, index, count) for step in range(101)]
+                assert values[0] == 0
+                assert values[-1] == 1
+                assert values == sorted(values)
+                assert 0 < values[50] < 1
+            assert material_transfer_progress("collect", 0.28, index, count) == 0
+            assert material_transfer_progress("collect", 0.95, index, count) == 1

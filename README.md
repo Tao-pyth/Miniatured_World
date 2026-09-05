@@ -12,7 +12,7 @@
 
 ## 現在の状態
 
-現在のリリース済みベースライン: **V0.9 / v0.9.1**
+現在のリリース済みベースライン: **V0.9 / v0.9.2**
 
 現在の次候補: **V1.0 / v1.0.0 MVPリリース**
 
@@ -36,7 +36,9 @@ V0.9.1 では、提供素材を透過スプライトに整え、魔法釜の4系
 
 ![ラボの動作プレビュー](docs/images/lab-preview.gif)
 
-[静止画](docs/images/lab-preview.png) / [v0.9.1配布と更新内容](https://github.com/Tao-pyth/Miniatured_World/releases/tag/v0.9.1)
+V0.9.2では、右奥を浅い本棚へ置き換え、本・素材かご・完成品トレーを独立配置しました。素材の到着から本の確認、調合、完成品の配置までを連携させ、人物と釜の白縁・接地・コマ間の輪郭を補正しました。[構図比較と検証記録](docs/lab-workspace-verification.md)から確認できます。
+
+[静止画](docs/images/lab-preview.png) / [v0.9.2配布と更新内容](https://github.com/Tao-pyth/Miniatured_World/releases/tag/v0.9.2)
 
 まだMVP RC合格宣言、全環境で保証された完全クリック透過、インストーラー、コード署名、自動更新は含みません。
 
