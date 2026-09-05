@@ -24,7 +24,7 @@ def test_cli_demo_provider_smoke_outputs_japanese_summary() -> None:
         env=env,
     )
 
-    assert "Miniatured World シード=20260825" in result.stdout
+    assert "小さなラボラトリー シード=20260825" in result.stdout
     assert "傾向=森" in result.stdout
     assert "発見=" in result.stdout
 
@@ -49,7 +49,7 @@ def test_cli_accepts_windows_global_provider() -> None:
         env=env,
     )
 
-    assert "Miniatured World シード=20260825" in result.stdout
+    assert "小さなラボラトリー シード=20260825" in result.stdout
 
 
 def test_cli_writes_stability_log(tmp_path) -> None:

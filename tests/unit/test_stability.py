@@ -19,7 +19,7 @@ def test_stability_log_contains_privacy_safe_runtime_entries(tmp_path) -> None:
 
     entries = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
     assert [entry["event"] for entry in entries] == ["start", "tick", "tick", "completed"]
-    assert entries[-1]["summary"].startswith("Miniatured World")
+    assert entries[-1]["summary"].startswith("小さなラボラトリー")
     assert entries[-1]["snapshot"]["provider"]["name"] == "demo"
     assert entries[-1]["process"]["pid"] > 0
 

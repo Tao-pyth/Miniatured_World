@@ -21,7 +21,7 @@ def _app() -> QApplication:
     return QApplication.instance() or QApplication([])
 
 
-def test_main_window_contains_world_settings_and_discovery_tabs() -> None:
+def test_main_window_contains_lab_settings_and_discovery_tabs() -> None:
     _app()
     runtime = AppRuntime.start(seed=20260825, provider=DemoActivityProvider())
     window = build_main_window(runtime)
@@ -30,8 +30,8 @@ def test_main_window_contains_world_settings_and_discovery_tabs() -> None:
     try:
         tabs = window.findChild(QTabWidget)
         assert tabs is not None
-        assert [tabs.tabText(index) for index in range(tabs.count())] == ["ワールド", "設定", "発見"]
-        assert window.windowTitle() == "Miniatured World"
+        assert [tabs.tabText(index) for index in range(tabs.count())] == ["ラボ", "設定", "発見"]
+        assert window.windowTitle() == "小さなラボラトリー"
     finally:
         window.close()
 
@@ -50,6 +50,7 @@ def test_main_window_refreshes_from_snapshot_and_keeps_privacy_toggles_safe() ->
         assert len(disabled_unchecked) >= 5
         assert window.world_tab.status._value.text() == "稼働中"
         assert window.world_tab.provider._value.text() == "デモ"
+        assert window.world_tab.tendency._title.text() == "ラボ傾向"
     finally:
         window.close()
 
@@ -164,6 +165,7 @@ def test_window_controls_use_runtime_commands_without_closing_window_on_hide() -
         assert runtime.snapshot().world_visible is False
         assert window.isHidden() is False
         assert window.world_tab.preview.isHidden() is True
+        assert window.world_tab.visibility_button.text() == "ラボ表示"
     finally:
         window.close()
 

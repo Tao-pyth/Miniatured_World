@@ -22,6 +22,9 @@ print(f"Using PySide6 {pyside6}")
 "@
 
 & $Python -c $versionCheck
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
 
 & $Python -m PyInstaller `
     --noconfirm `
@@ -34,6 +37,7 @@ print(f"Using PySide6 {pyside6}")
     --hidden-import PySide6.QtWidgets `
     --hidden-import PySide6.QtNetwork `
     --add-data "src\miniatured_world\content\defaults.json;miniatured_world\content" `
+    --add-data "src\miniatured_world\assets\little_laboratory_background.jpg;miniatured_world\assets" `
     src\miniatured_world\__main__.py
 
 Write-Host "Build completed: dist\$Name.exe"

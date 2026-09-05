@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import math
+from importlib import resources
 from collections.abc import Callable
 from pathlib import Path
 
 from miniatured_world.app.commands import RuntimeCommand
+from miniatured_world.app.lab import derive_lab_scene
 from miniatured_world.app.native_window import set_windows_click_through
 from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.app.snapshot import WorldSnapshot
@@ -20,8 +22,8 @@ def build_main_window(
     stability_log: Path | None = None,
     on_stability_complete: Callable[[], None] | None = None,
 ):
-    from PySide6.QtCore import Qt, QTimer
-    from PySide6.QtGui import QColor, QPainter, QPen
+    from PySide6.QtCore import QRect, Qt, QTimer
+    from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
     from PySide6.QtWidgets import (
         QCheckBox,
         QComboBox,
@@ -56,6 +58,7 @@ def build_main_window(
         def __init__(self) -> None:
             super().__init__()
             self._snapshot: WorldSnapshot | None = None
+            self._background = _load_lab_background()
             self.setMinimumSize(520, 300)
 
         def set_snapshot(self, snapshot: WorldSnapshot) -> None:
@@ -72,41 +75,12 @@ def build_main_window(
             if snapshot is None:
                 return
 
-            sky_height = int(rect.height() * 0.52)
-            painter.fillRect(0, 0, rect.width(), sky_height, QColor("#22323b"))
-            painter.fillRect(0, sky_height, rect.width(), rect.height() - sky_height, QColor("#243027"))
-
-            material_items = list(snapshot.grid_materials.items()) or list(snapshot.materials.items())
-            total = max(1, sum(count for _, count in material_items))
-            x = 0
-            ground_top = int(rect.height() * 0.64)
-            for material_id, count in material_items:
-                width = max(8, int(rect.width() * count / total))
-                color = self._colors.get(material_id, QColor("#7c8790"))
-                painter.fillRect(x, ground_top, width, rect.height() - ground_top, color)
-                x += width
-            if x < rect.width():
-                painter.fillRect(x, ground_top, rect.width() - x, rect.height() - ground_top, QColor("#314037"))
-
-            painter.setPen(QPen(QColor("#7fb069"), 3))
-            for index in range(snapshot.plant_count):
-                plant_x = 48 + index * 34
-                if plant_x >= rect.width() - 24:
-                    break
-                base_y = ground_top + 18
-                painter.drawLine(plant_x, base_y, plant_x, base_y - 38)
-                painter.drawLine(plant_x, base_y - 26, plant_x - 12, base_y - 36)
-                painter.drawLine(plant_x, base_y - 22, plant_x + 12, base_y - 34)
-
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor("#d6c7a1"))
-            for index in range(snapshot.creature_count):
-                creature_x = rect.width() - 70 - index * 34
-                creature_y = ground_top + 28
-                painter.drawEllipse(creature_x, creature_y, 18, 12)
-
-            painter.setPen(QColor("#b8c2cc"))
-            painter.drawText(18, 28, f"傾向: {_display_value(snapshot.tendency)} / 活動: {_display_value(snapshot.activity_level)}")
+            _draw_lab_background(painter, rect, self._background)
+            scene = derive_lab_scene(snapshot)
+            _draw_cauldron(painter, rect, scene.cauldron_state)
+            _draw_material_effects(painter, rect, snapshot, scene.effects)
+            _draw_alchemist(painter, rect, scene.character_state)
+            _draw_lab_overlay(painter, rect, snapshot)
 
     class _InfoPill(QFrame):
         def __init__(self, title: str) -> None:
@@ -130,14 +104,14 @@ def build_main_window(
             super().__init__()
             self._runtime = runtime
             self.preview = _WorldPreviewWidget()
-            self.tendency = _InfoPill("傾向")
+            self.tendency = _InfoPill("ラボ傾向")
             self.traits = _InfoPill("特性")
             self.activity = _InfoPill("活動")
-            self.world_time = _InfoPill("世界時間")
+            self.world_time = _InfoPill("実験時間")
             self.materials = _InfoPill("素材")
             self.events = _InfoPill("イベント")
             self.discoveries = _InfoPill("発見")
-            self.status = _InfoPill("状態")
+            self.status = _InfoPill("ラボ状態")
             self.provider = _InfoPill("活動取得")
 
             layout = QVBoxLayout(self)
@@ -166,7 +140,7 @@ def build_main_window(
             controls.setSpacing(8)
             self.pause_button = _tool_button("一時停止", QStyle.StandardPixmap.SP_MediaPause, RuntimeCommand.TOGGLE_PAUSE)
             self.activity_button = _tool_button("活動停止", QStyle.StandardPixmap.SP_DialogApplyButton, RuntimeCommand.STOP_ACTIVITY)
-            self.visibility_button = _tool_button("非表示", QStyle.StandardPixmap.SP_TitleBarShadeButton, RuntimeCommand.HIDE_WORLD)
+            self.visibility_button = _tool_button("ラボ非表示", QStyle.StandardPixmap.SP_TitleBarShadeButton, RuntimeCommand.HIDE_WORLD)
             self.mute_button = _tool_button("ミュート", QStyle.StandardPixmap.SP_MediaVolumeMuted, RuntimeCommand.TOGGLE_MUTE)
             self.exit_button = _tool_button("終了", QStyle.StandardPixmap.SP_DialogCloseButton, RuntimeCommand.EXIT)
             for button in (
@@ -199,7 +173,7 @@ def build_main_window(
                 "runtime_command",
                 RuntimeCommand.START_ACTIVITY if not snapshot.activity_collection_enabled else RuntimeCommand.STOP_ACTIVITY,
             )
-            self.visibility_button.setText("表示" if not snapshot.world_visible else "非表示")
+            self.visibility_button.setText("ラボ表示" if not snapshot.world_visible else "ラボ非表示")
             self.visibility_button.setProperty(
                 "runtime_command",
                 RuntimeCommand.SHOW_WORLD if not snapshot.world_visible else RuntimeCommand.HIDE_WORLD,
@@ -273,14 +247,14 @@ def build_main_window(
             )
             self._on_stability_complete = on_stability_complete
             self._display_signature: tuple[str, bool, bool, float] | None = None
-            self.setWindowTitle("Miniatured World")
+            self.setWindowTitle("小さなラボラトリー")
             self.setMinimumSize(900, 620)
 
             self.tabs = QTabWidget()
             self.world_tab = _WorldTab(runtime)
             self.settings_tab = _SettingsTab(runtime.service.settings, runtime)
             self.discovery_tab = _DiscoveryTab()
-            self.tabs.addTab(self.world_tab, "ワールド")
+            self.tabs.addTab(self.world_tab, "ラボ")
             self.tabs.addTab(self.settings_tab, "設定")
             self.tabs.addTab(self.discovery_tab, "発見")
             self.setCentralWidget(self.tabs)
@@ -360,6 +334,157 @@ def build_main_window(
         button.setMinimumHeight(34)
         button.setProperty("runtime_command", command)
         return button
+
+    def _load_lab_background() -> QPixmap:
+        try:
+            data = (resources.files("miniatured_world") / "assets" / "little_laboratory_background.jpg").read_bytes()
+        except (FileNotFoundError, ModuleNotFoundError):
+            return QPixmap()
+        image = QImage()
+        if not image.loadFromData(data):
+            return QPixmap()
+        return QPixmap.fromImage(image)
+
+    def _draw_lab_background(painter: QPainter, rect: QRect, background: QPixmap) -> None:
+        if not background.isNull():
+            source = background.rect()
+            target_ratio = rect.width() / max(1, rect.height())
+            source_ratio = source.width() / max(1, source.height())
+            if source_ratio > target_ratio:
+                width = int(source.height() * target_ratio)
+                x = source.x() + (source.width() - width) // 2
+                source = QRect(x, source.y(), width, source.height())
+            elif source_ratio < target_ratio:
+                height = int(source.width() / target_ratio)
+                y = source.y() + max(0, source.height() - height) // 2
+                source = QRect(source.x(), y, source.width(), height)
+            painter.drawPixmap(rect, background, source)
+            painter.fillRect(rect, QColor(18, 23, 28, 35))
+            return
+
+        painter.fillRect(rect, QColor("#22323b"))
+        floor_top = int(rect.height() * 0.52)
+        painter.fillRect(0, floor_top, rect.width(), rect.height() - floor_top, QColor("#7a5740"))
+        painter.fillRect(
+            int(rect.width() * 0.18),
+            int(rect.height() * 0.60),
+            int(rect.width() * 0.64),
+            int(rect.height() * 0.28),
+            QColor("#7d9488"),
+        )
+
+    def _draw_cauldron(painter: QPainter, rect: QRect, state: str) -> None:
+        x = int(rect.width() * 0.36)
+        y = int(rect.height() * 0.62)
+        w = max(70, int(rect.width() * 0.14))
+        h = max(58, int(rect.height() * 0.18))
+
+        glow = {
+            "cauldron_success": QColor(113, 229, 171, 105),
+            "cauldron_failure": QColor(102, 96, 105, 120),
+            "cauldron_react": QColor(91, 199, 188, 90),
+            "cauldron_receive": QColor(88, 153, 196, 75),
+        }.get(state, QColor(52, 72, 78, 45))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(glow)
+        painter.drawEllipse(x - w // 5, y - h // 3, int(w * 1.35), int(h * 0.8))
+
+        painter.setPen(QPen(QColor("#2a2026"), 3))
+        painter.setBrush(QColor("#3a2e38"))
+        painter.drawRoundedRect(x, y, w, h, 18, 18)
+        painter.setBrush(QColor("#11181d"))
+        painter.drawEllipse(x + 8, y - 10, w - 16, 22)
+        painter.setPen(QPen(QColor("#bb8e45"), 3))
+        painter.drawLine(x + 14, y + h - 4, x + w - 14, y + h - 4)
+
+    def _draw_alchemist(painter: QPainter, rect: QRect, state: str) -> None:
+        x = int(rect.width() * 0.58)
+        y = int(rect.height() * 0.58)
+        scale = max(1.0, min(rect.width(), rect.height()) / 420)
+        body_w = int(34 * scale)
+        body_h = int(44 * scale)
+        head = int(28 * scale)
+        bob = -4 if state in {"success", "work"} else 0
+
+        painter.setPen(QPen(QColor("#2b2329"), 2))
+        painter.setBrush(QColor("#7b443d"))
+        painter.drawEllipse(x + 2, y + body_h + bob, body_w + 12, int(10 * scale))
+
+        painter.setBrush(QColor("#5f3f36"))
+        painter.drawRoundedRect(x, y + head - 2 + bob, body_w, body_h, 8, 8)
+        painter.setBrush(QColor("#e8d5bd"))
+        painter.drawEllipse(x - 2, y + bob, head, head)
+        painter.setBrush(QColor("#6d483e"))
+        painter.drawPie(x - 10, y - 10 + bob, head + 24, int(24 * scale), 0, 180 * 16)
+        painter.setBrush(QColor("#74b8c9"))
+        painter.drawEllipse(x + int(7 * scale), y + int(12 * scale) + bob, 4, 4)
+        painter.drawEllipse(x + int(18 * scale), y + int(12 * scale) + bob, 4, 4)
+
+        painter.setPen(QPen(QColor("#e8d5bd"), 3))
+        if state == "success":
+            painter.drawLine(x + body_w, y + head + 6 + bob, x + body_w + int(15 * scale), y + head - int(8 * scale) + bob)
+        elif state == "failure":
+            painter.drawLine(x + body_w, y + head + 8 + bob, x + body_w + int(12 * scale), y + head + int(16 * scale) + bob)
+        else:
+            painter.drawLine(x + body_w, y + head + 10 + bob, x + body_w + int(14 * scale), y + head + int(3 * scale) + bob)
+
+    def _draw_material_effects(
+        painter: QPainter,
+        rect: QRect,
+        snapshot: WorldSnapshot,
+        effects: tuple[str, ...],
+    ) -> None:
+        if "material_drop" in effects:
+            material_items = list(snapshot.materials.items()) or [("seed", 1)]
+            for index, (material_id, _count) in enumerate(material_items[:8]):
+                color = _WorldPreviewWidget._colors.get(material_id, QColor("#d8c998"))
+                x = int(rect.width() * (0.24 + index * 0.035))
+                y = int(rect.height() * (0.34 + (index % 3) * 0.045))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(color)
+                painter.drawEllipse(x, y, 8, 8)
+
+        if "reaction_light" in effects:
+            painter.setPen(QPen(QColor(105, 229, 180, 150), 2))
+            cx = int(rect.width() * 0.42)
+            cy = int(rect.height() * 0.58)
+            for radius in (18, 30, 42):
+                painter.drawEllipse(cx - radius, cy - radius, radius * 2, radius * 2)
+
+        if "smoke_puff" in effects:
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(96, 91, 102, 155))
+            for index in range(3):
+                painter.drawEllipse(
+                    int(rect.width() * 0.40) + index * 14,
+                    int(rect.height() * 0.50) - index * 12,
+                    24,
+                    18,
+                )
+
+    def _draw_lab_overlay(painter: QPainter, rect: QRect, snapshot: WorldSnapshot) -> None:
+        panel = QRect(14, 12, min(190, rect.width() - 28), 42)
+        painter.setPen(QPen(QColor(31, 41, 51, 160), 1))
+        painter.setBrush(QColor(246, 247, 244, 205))
+        painter.drawRoundedRect(panel, 6, 6)
+        painter.setPen(QPen(QColor("#4d5a64"), 2))
+        painter.drawLine(panel.x() + 18, panel.y() + 12, panel.x() + 18, panel.y() + 26)
+        painter.drawLine(panel.x() + 12, panel.y() + 27, panel.x() + 24, panel.y() + 27)
+        painter.setBrush(QColor("#6db2c3"))
+        painter.drawEllipse(panel.x() + 10, panel.y() + 23, 16, 10)
+
+        bar_x = panel.x() + 46
+        bar_y = panel.y() + 14
+        active_bars = max(1, min(5, int(round(snapshot.activity_intensity * 5))))
+        for index in range(5):
+            color = QColor("#6eb58f") if index < active_bars else QColor("#cad4cf")
+            painter.fillRect(bar_x + index * 12, bar_y + (4 - index) * 3, 8, 8 + index * 3, color)
+
+        material_total = min(6, sum(snapshot.materials.values()))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor("#d8c998"))
+        for index in range(material_total):
+            painter.drawEllipse(panel.x() + 122 + index * 9, panel.y() + 18 + (index % 2) * 6, 6, 6)
 
     def _group(title: str, rows: list[tuple[str, object]]) -> QWidget:
         box = QGroupBox(title)
@@ -641,6 +766,11 @@ def build_main_window(
             "first_rain": "初めての雨",
             "quiet_night": "静かな夜",
             "rainbow": "虹",
+            "idle": "待機",
+            "work": "実験中",
+            "success": "成功",
+            "failure": "失敗",
+            "rest": "休憩",
         }
         return labels.get(value, value)
 
