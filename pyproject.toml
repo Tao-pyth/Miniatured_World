@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "miniatured-world"
-version = "0.8.2"
-description = "抽象化されたPC活動で動く、プライバシー優先のデスクトップ箱庭アプリ基盤。"
+version = "0.9.0"
+description = "抽象化されたPC活動で素材が届く、プライバシー優先のデスクトップ実験マスコット。"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [
@@ -25,7 +25,7 @@ miniatured-world = "miniatured_world.__main__:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-miniatured_world = ["content/defaults.json"]
+miniatured_world = ["content/defaults.json", "assets/little_laboratory_background.jpg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

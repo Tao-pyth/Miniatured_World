@@ -75,7 +75,7 @@ class MiniaturedWorldService:
     def summary_text(self) -> str:
         summary = self.simulation.summary()
         return (
-            f"Miniatured World シード={summary['seed']} "
+            f"小さなラボラトリー シード={summary['seed']} "
             f"傾向={_SUMMARY_LABELS.get(str(summary['tendency']), summary['tendency'])} "
             f"発見={len(summary['discoveries'])} "
             f"イベント={len(summary['events'])}"

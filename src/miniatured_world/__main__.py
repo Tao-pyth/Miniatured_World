@@ -25,9 +25,9 @@ class _JapaneseArgumentParser(argparse.ArgumentParser):
 
 def main(argv: list[str] | None = None) -> int:
     _configure_console_output()
-    parser = _JapaneseArgumentParser(prog="miniatured-world", description="Miniatured World を起動します。", add_help=False)
+    parser = _JapaneseArgumentParser(prog="miniatured-world", description="小さなラボラトリーを起動します。", add_help=False)
     parser.add_argument("-h", "--help", action="help", help="このヘルプを表示して終了します。")
-    parser.add_argument("--seed", type=int, default=20260825, help="ワールド生成に使うシード値。")
+    parser.add_argument("--seed", type=int, default=20260825, help="ラボのセッション生成に使うシード値。")
     parser.add_argument("--frames", type=int, default=5, help="UIなし実行で進めるフレーム数。")
     parser.add_argument("--duration-seconds", type=float, default=None, help="安定性検証で実行する秒数。")
     parser.add_argument("--tick-interval-ms", type=int, default=1000, help="1フレームの経過時間ミリ秒。")
