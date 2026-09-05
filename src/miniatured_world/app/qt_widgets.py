@@ -6,7 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from miniatured_world.app.commands import RuntimeCommand
-from miniatured_world.app.lab import derive_lab_scene
+from miniatured_world.app.lab import LabAnimation
 from miniatured_world.app.native_window import set_windows_click_through
 from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.app.snapshot import WorldSnapshot
@@ -22,7 +22,7 @@ def build_main_window(
     stability_log: Path | None = None,
     on_stability_complete: Callable[[], None] | None = None,
 ):
-    from PySide6.QtCore import QRect, Qt, QTimer
+    from PySide6.QtCore import QElapsedTimer, QRect, Qt, QTimer
     from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
     from PySide6.QtWidgets import (
         QCheckBox,
@@ -59,28 +59,65 @@ def build_main_window(
             super().__init__()
             self._snapshot: WorldSnapshot | None = None
             self._background = _load_lab_background()
+            self._character_sprites = _load_character_sprites()
+            self._cauldron_sprites = _load_cauldron_sprites()
+            self.animation = LabAnimation()
+            self._animation_clock = QElapsedTimer()
+            self.animation_timer = QTimer(self)
+            self.animation_timer.timeout.connect(self._animate)
             self.setMinimumSize(520, 300)
 
         def set_snapshot(self, snapshot: WorldSnapshot) -> None:
             self._snapshot = snapshot
+            self.animation.observe(snapshot)
+            self._sync_animation_timer()
             self.update()
+
+        def _sync_animation_timer(self) -> None:
+            snapshot = self._snapshot
+            active = self.isVisible() and snapshot is not None and snapshot.running and not snapshot.paused and snapshot.world_visible
+            if active:
+                fps = max(1, min(30, runtime.service.settings.display.fps_limit))
+                self.animation_timer.setInterval(math.ceil(1000 / fps))
+                if not self.animation_timer.isActive():
+                    self._animation_clock.start()
+                    self.animation_timer.start()
+            else:
+                self.animation_timer.stop()
+
+        def _animate(self) -> None:
+            self.animation.advance(self._animation_clock.restart())
+            self.update()
+
+        def showEvent(self, event) -> None:  # noqa: N802
+            super().showEvent(event)
+            self._sync_animation_timer()
+
+        def hideEvent(self, event) -> None:  # noqa: N802
+            self.animation_timer.stop()
+            super().hideEvent(event)
 
         def paintEvent(self, event) -> None:  # noqa: N802
             painter = QPainter(self)
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            rect = self.rect()
-            painter.fillRect(rect, QColor("#172026"))
+            painter.fillRect(self.rect(), QColor("#29282d"))
 
             snapshot = self._snapshot
             if snapshot is None:
                 return
 
+            # Background and sprites share one stage, including letterboxing on resize.
+            scale = min(self.width() / 1280, self.height() / 853)
+            painter.translate((self.width() - 1280 * scale) / 2, (self.height() - 853 * scale) / 2)
+            painter.scale(scale, scale)
+            rect = QRect(0, 0, 1280, 853)
+            painter.setClipRect(rect)
             _draw_lab_background(painter, rect, self._background)
-            scene = derive_lab_scene(snapshot)
-            _draw_cauldron(painter, rect, scene.cauldron_state)
-            _draw_material_effects(painter, rect, snapshot, scene.effects)
-            _draw_alchemist(painter, rect, scene.character_state)
-            _draw_lab_overlay(painter, rect, snapshot)
+            scene = self.animation.scene
+            if scene is None:
+                return
+            _draw_cauldron(painter, rect, scene.cauldron_state, self._cauldron_sprites, self.animation.frame_index)
+            _draw_material_effects(painter, rect, snapshot, scene.effects, self.animation.elapsed_ms)
+            _draw_alchemist(painter, rect, scene.character_state, self._character_sprites, self.animation.elapsed_ms)
 
     class _InfoPill(QFrame):
         def __init__(self, title: str) -> None:
@@ -117,7 +154,7 @@ def build_main_window(
             layout = QVBoxLayout(self)
             layout.setContentsMargins(16, 16, 16, 16)
             layout.setSpacing(12)
-            layout.addWidget(self.preview)
+            layout.addWidget(self.preview, 1)
 
             grid = QGridLayout()
             for index, pill in enumerate(
@@ -294,6 +331,8 @@ def build_main_window(
             self.discovery_tab.refresh(snapshot)
 
         def closeEvent(self, event) -> None:  # noqa: N802
+            self.timer.stop()
+            self.world_tab.preview.animation_timer.stop()
             self._close_stability_log(cancelled=True)
             super().closeEvent(event)
 
@@ -345,6 +384,50 @@ def build_main_window(
             return QPixmap()
         return QPixmap.fromImage(image)
 
+    def _load_character_sprites() -> dict[str, QPixmap]:
+        sprites: dict[str, QPixmap] = {}
+        try:
+            base = resources.files("miniatured_world") / "assets" / "characters" / "alchemist_girl"
+        except ModuleNotFoundError:
+            return sprites
+        for state in ("idle", "work", "success", "failure", "rest"):
+            try:
+                data = (base / f"{state}.png").read_bytes()
+            except FileNotFoundError:
+                continue
+            image = QImage()
+            if image.loadFromData(data):
+                sprites[state] = QPixmap.fromImage(image)
+        return sprites
+
+    def _load_cauldron_sprites() -> dict[str, tuple[QPixmap, ...]]:
+        sprites: dict[str, tuple[QPixmap, ...]] = {}
+        try:
+            base = resources.files("miniatured_world") / "assets" / "cauldron" / "magic_cauldron"
+        except ModuleNotFoundError:
+            return sprites
+        for state in ("idle", "receive", "success", "failure"):
+            frames: list[QPixmap] = []
+            for index in range(1, 9):
+                try:
+                    data = (base / f"{state}_{index:02d}.png").read_bytes()
+                except FileNotFoundError:
+                    continue
+                image = QImage()
+                if image.loadFromData(data):
+                    frames.append(QPixmap.fromImage(image))
+            if not frames:
+                try:
+                    data = (base / f"{state}.png").read_bytes()
+                except FileNotFoundError:
+                    data = b""
+                image = QImage()
+                if data and image.loadFromData(data):
+                    frames.append(QPixmap.fromImage(image))
+            if frames:
+                sprites[state] = tuple(frames)
+        return sprites
+
     def _draw_lab_background(painter: QPainter, rect: QRect, background: QPixmap) -> None:
         if not background.isNull():
             source = background.rect()
@@ -359,7 +442,6 @@ def build_main_window(
                 y = source.y() + max(0, source.height() - height) // 2
                 source = QRect(source.x(), y, source.width(), height)
             painter.drawPixmap(rect, background, source)
-            painter.fillRect(rect, QColor(18, 23, 28, 35))
             return
 
         painter.fillRect(rect, QColor("#22323b"))
@@ -373,7 +455,29 @@ def build_main_window(
             QColor("#7d9488"),
         )
 
-    def _draw_cauldron(painter: QPainter, rect: QRect, state: str) -> None:
+    def _draw_cauldron(
+        painter: QPainter,
+        rect: QRect,
+        state: str,
+        sprites: dict[str, tuple[QPixmap, ...]],
+        frame_index: int,
+    ) -> None:
+        sprite_key = {
+            "cauldron_idle": "idle",
+            "cauldron_receive": "receive",
+            "cauldron_success": "success",
+            "cauldron_failure": "failure",
+            "cauldron_react": "success",
+        }.get(state, "idle")
+        frames = sprites.get(sprite_key) or sprites.get("idle") or ()
+        if frames:
+            sprite = frames[frame_index % len(frames)]
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(36, 23, 37, 70))
+            painter.drawEllipse(425, 668, 145, 24)
+            painter.drawPixmap(QRect(400, 444, 192, 256), sprite)
+            return
+
         x = int(rect.width() * 0.36)
         y = int(rect.height() * 0.62)
         w = max(70, int(rect.width() * 0.14))
@@ -397,7 +501,27 @@ def build_main_window(
         painter.setPen(QPen(QColor("#bb8e45"), 3))
         painter.drawLine(x + 14, y + h - 4, x + w - 14, y + h - 4)
 
-    def _draw_alchemist(painter: QPainter, rect: QRect, state: str) -> None:
+    def _draw_alchemist(
+        painter: QPainter,
+        rect: QRect,
+        state: str,
+        sprites: dict[str, QPixmap],
+        elapsed_ms: int,
+    ) -> None:
+        sprite = sprites.get(state) or sprites.get("idle")
+        if sprite is not None and not sprite.isNull():
+            phase = elapsed_ms / 1000
+            bob = 0
+            if state == "success":
+                bob = -round(6 * abs(math.sin(phase * math.pi * 2)))
+            elif state in {"work", "idle"}:
+                bob = -round(2 * max(0, math.sin(phase * math.pi)))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(36, 23, 37, 60))
+            painter.drawEllipse(664, 676, 166, 16)
+            painter.drawPixmap(QRect(632, 468 + bob, 230, 230), sprite)
+            return
+
         x = int(rect.width() * 0.58)
         y = int(rect.height() * 0.58)
         scale = max(1.0, min(rect.width(), rect.height()) / 420)
@@ -433,34 +557,50 @@ def build_main_window(
         rect: QRect,
         snapshot: WorldSnapshot,
         effects: tuple[str, ...],
+        elapsed_ms: int,
     ) -> None:
+        painter.save()
+        painter.setPen(Qt.PenStyle.NoPen)
+        seconds = elapsed_ms / 1000
         if "material_drop" in effects:
-            material_items = list(snapshot.materials.items()) or [("seed", 1)]
-            for index, (material_id, _count) in enumerate(material_items[:8]):
+            material_items = [(name, count) for name, count in snapshot.materials.items() if count > 0] or [("seed", 1)]
+            shapes = {
+                "seed": ("000110", "001110", "011100", "111000", "010000", "100000"),
+                "water": ("001000", "001100", "011100", "111110", "111110", "011100"),
+                "mineral": ("001100", "011110", "111110", "111110", "011100", "001000"),
+            }
+            for index, (material_id, _count) in enumerate(material_items[:6]):
+                progress = (seconds / 1.8 + index / 6) % 1
+                x = round(300 + 196 * progress)
+                y = round(516 + 61 * progress - 92 * math.sin(math.pi * progress))
                 color = _WorldPreviewWidget._colors.get(material_id, QColor("#d8c998"))
-                x = int(rect.width() * (0.24 + index * 0.035))
-                y = int(rect.height() * (0.34 + (index % 3) * 0.045))
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(color)
-                painter.drawEllipse(x, y, 8, 8)
-
+                painter.setOpacity(min(1.0, progress * 8, (1 - progress) * 8))
+                shape = shapes.get(material_id, ("000000", "001100", "011110", "011110", "001100", "000000"))
+                for row, line in enumerate(shape):
+                    for column, pixel in enumerate(line):
+                        if pixel == "1":
+                            shade = color.lighter(145) if row < 3 and column < 3 else color
+                            painter.fillRect(x + column * 3, y + row * 3, 3, 3, shade)
+                for trail in range(1, 4):
+                    painter.fillRect(x - trail * 9, y + 10 + trail * 3, 3, 3, QColor(color.red(), color.green(), color.blue(), 130 // trail))
+        painter.setOpacity(1)
         if "reaction_light" in effects:
-            painter.setPen(QPen(QColor(105, 229, 180, 150), 2))
-            cx = int(rect.width() * 0.42)
-            cy = int(rect.height() * 0.58)
-            for radius in (18, 30, 42):
-                painter.drawEllipse(cx - radius, cy - radius, radius * 2, radius * 2)
-
+            for index in range(5):
+                progress = (seconds / 1.4 + index / 5) % 1
+                x = round(493 + math.sin(index * 2.4 + progress) * 48)
+                y = round(575 - progress * 96)
+                color = QColor(154, 240, 202, round(190 * (1 - progress)))
+                painter.fillRect(x - 4, y, 12, 4, color)
+                painter.fillRect(x, y - 4, 4, 12, color)
         if "smoke_puff" in effects:
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(96, 91, 102, 155))
             for index in range(3):
-                painter.drawEllipse(
-                    int(rect.width() * 0.40) + index * 14,
-                    int(rect.height() * 0.50) - index * 12,
-                    24,
-                    18,
-                )
+                progress = (seconds / 2 + index / 3) % 1
+                x = round(488 + 18 * math.sin(progress * 5 + index))
+                y = round(565 - 100 * progress)
+                color = QColor(154, 145, 168, round(150 * (1 - progress)))
+                painter.fillRect(x, y, 16, 12, color)
+                painter.fillRect(x + 4, y - 4, 12, 20, color)
+        painter.restore()
 
     def _draw_lab_overlay(painter: QPainter, rect: QRect, snapshot: WorldSnapshot) -> None:
         panel = QRect(14, 12, min(190, rect.width() - 28), 42)

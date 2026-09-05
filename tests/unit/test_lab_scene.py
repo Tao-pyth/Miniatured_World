@@ -1,5 +1,7 @@
+from dataclasses import replace
+
 from miniatured_world.activity import ActivityProviderStatus
-from miniatured_world.app.lab import derive_lab_scene
+from miniatured_world.app.lab import LabAnimation, derive_lab_scene
 from miniatured_world.app.snapshot import WorldSnapshot
 
 
@@ -72,7 +74,8 @@ def test_lab_scene_records_success_for_events_or_discoveries() -> None:
             materials={"soil": 1},
             events=("soft_rain",),
             discoveries=("first_rain",),
-        )
+        ),
+        reaction=True,
     )
 
     assert scene.character_state == "success"
@@ -88,3 +91,51 @@ def test_lab_scene_does_not_expose_private_activity_content() -> None:
     serialized = repr(scene)
     forbidden = {"key_sequence", "window_title", "clipboard", "screen_capture", "mouse_x", "mouse_y"}
     assert all(term not in serialized for term in forbidden)
+
+
+def test_animation_loops_without_activity_updates_and_freezes_on_pause() -> None:
+    animation = LabAnimation()
+    snapshot = _snapshot(activity_level="active", intensity=0.5, materials={"seed": 2})
+    animation.observe(snapshot)
+    frames = []
+    for _ in range(9):
+        frames.append(animation.frame_index)
+        animation.advance(125)
+    assert frames == [0, 1, 2, 3, 4, 5, 6, 7, 0]
+    animation.observe(replace(snapshot, paused=True))
+    before = animation.elapsed_ms
+    animation.advance(2000)
+    assert animation.elapsed_ms == before
+    assert animation.scene.character_state == "rest"
+    assert animation.scene.effects == ()
+    animation.observe(replace(snapshot, world_visible=False))
+    animation.advance(2000)
+    assert animation.elapsed_ms == before
+    animation.observe(snapshot)
+    animation.advance(125)
+    assert animation.elapsed_ms == before + 125
+
+
+def test_success_is_transient_and_saved_discoveries_do_not_retrigger_it() -> None:
+    animation = LabAnimation()
+    snapshot = _snapshot(activity_level="active", intensity=0.5, materials={"seed": 2}, discoveries=("old",))
+    animation.observe(snapshot)
+    assert animation.scene.character_state == "work"
+    new = replace(snapshot, discoveries=("old", "new"), world_time=2)
+    animation.observe(new)
+    assert animation.scene.character_state == "success"
+    animation.advance(3200)
+    animation.observe(new)
+    assert animation.scene.character_state == "work"
+    animation.observe(replace(new, events=("rain",), world_time=3))
+    assert animation.scene.character_state == "success"
+    animation.observe(replace(snapshot, seed=2))
+    assert animation.scene.character_state == "work"
+
+
+def test_quiet_inventory_does_not_keep_materials_flying() -> None:
+    scene = derive_lab_scene(_snapshot(materials={"seed": 3}, grid_materials={"seed": 2}, discoveries=("old",)))
+    assert scene.character_state == "rest"
+    assert "material_drop" not in scene.effects
+    empty = derive_lab_scene(_snapshot(activity_level="intense", intensity=0.9))
+    assert "material_drop" not in empty.effects
