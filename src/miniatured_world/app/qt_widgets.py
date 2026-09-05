@@ -5,6 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from miniatured_world.app.commands import RuntimeCommand
+from miniatured_world.app.native_window import set_windows_click_through
 from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.app.snapshot import WorldSnapshot
 from miniatured_world.app.stability import StabilityLogWriter
@@ -600,6 +601,7 @@ def build_main_window(
 
         if was_visible:
             window.show()
+        set_windows_click_through(int(window.winId()), desktop_mode and display.click_through)
 
     def _status_text(snapshot: WorldSnapshot) -> str:
         if not snapshot.running:
