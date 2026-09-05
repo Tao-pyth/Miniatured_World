@@ -71,5 +71,600 @@
     96,
     128
   ],
-  "cauldron_baseline": 120
+  "cauldron_baseline": 120,
+  "refinement_v0_9_2": {
+    "source_release": "v0.9.1",
+    "script": "scripts/refine_lab_sprites.py",
+    "files": [
+      {
+        "path": "characters/alchemist_girl/failure.png",
+        "input_sha256": "140d50cc0d422ced28fbc0665d85eab88abc608240962ba8b1ae5b4358e1f3ab",
+        "output_sha256": "70df1c90923fc7110dbe493e0c63740db53ab456d4a573d217aa4e528e953c4c",
+        "changed_outline_pixels": 328,
+        "removed_scanline_pixels": 15,
+        "horizontal_shift": 19,
+        "vertical_shift": 10
+      },
+      {
+        "path": "characters/alchemist_girl/idle.png",
+        "input_sha256": "b54254a6392579e78dbd35135ed1df488fc3d7c311a5c14a96a748cce7b16782",
+        "output_sha256": "238c466c839438bf497d321716ca7916ef330418af6e2e6bef8831943ca8eaab",
+        "changed_outline_pixels": 235,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 8,
+        "vertical_shift": 0
+      },
+      {
+        "path": "characters/alchemist_girl/rest.png",
+        "input_sha256": "dfe115ca1212c65f54514d6ec765bce3ba51a09d24f7b17305d54b4ae6e4e008",
+        "output_sha256": "a384fc9663478b5ea6fdc45c300df11fc5f87fad3a307d4d143c47704f47fa6b",
+        "changed_outline_pixels": 272,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0
+      },
+      {
+        "path": "characters/alchemist_girl/success.png",
+        "input_sha256": "fe1044bc3cad09beabb3f2b6d0a56ad9049aefdb47b56156bf9fd91e6afd71cc",
+        "output_sha256": "f6910620691ea59c6cc103e6a99d24f806d45675cc6d7098b05e5e3c6c0f1970",
+        "changed_outline_pixels": 306,
+        "removed_scanline_pixels": 2,
+        "horizontal_shift": 3,
+        "vertical_shift": 9
+      },
+      {
+        "path": "characters/alchemist_girl/work.png",
+        "input_sha256": "baea0a7759cb4907656a164c9870cdb44f4d25716f707845f20037eb466b5a61",
+        "output_sha256": "387e62b23d7437c7a7313702a6fb9adbf88e6f04403dacb8fb87a25b53ec68ff",
+        "changed_outline_pixels": 442,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": -3,
+        "vertical_shift": 0
+      },
+      {
+        "path": "cauldron/magic_cauldron/failure_01.png",
+        "input_sha256": "62481083e096150f38a1f0298d4c2d237d96fa216f7d9835682d9eb51c04fb71",
+        "output_sha256": "86acd34661de2ccd72c4e37faff347a1f0ed27d6e5b18f37bab2027196908602",
+        "changed_outline_pixels": 37,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "failure_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/failure_02.png",
+        "input_sha256": "89a15a41651d879323b61decf46a5f8f80b16440b239cc14e4231fcfb80b796d",
+        "output_sha256": "f041620aece390a546146c5e8efd6385053fc3fbd185127650476eb63cb9c76e",
+        "changed_outline_pixels": 40,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "failure_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/failure_03.png",
+        "input_sha256": "a079bfa97ec5c1ee83c7fc8e088a75754f77bac1992f02cb585dcd1e427a9b9c",
+        "output_sha256": "2ec1830f307d492b3bb3ef73b9f91237cb820bb43afed73600fdbbd7ce0201d5",
+        "changed_outline_pixels": 39,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "failure_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/failure_04.png",
+        "input_sha256": "f7ce2074072e07cd59cca3afbf3217b42711b1a3587f77fa327bba2d45902be2",
+        "output_sha256": "de04a79ea8e671f089ce4d0238742288a712d33aa545cd05e4c5e3d661b4a0c3",
+        "changed_outline_pixels": 38,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "failure_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/failure_05.png",
+        "input_sha256": "faee79aefcd6f33d884ff8c769bc1f6bb11e4d2a5ea3b342e07d02de68253aa2",
+        "output_sha256": "f36067230b49b9e6909a061a120b9030ff2be735bb482a15361e6357432b5ac6",
+        "changed_outline_pixels": 39,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "failure_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/failure_06.png",
+        "input_sha256": "4ea514f71fc1225fa2abd9062061f6e9749d2574800c5c0bb222cdee5c32270c",
+        "output_sha256": "399030ded46bbb4d5c4162bcf23eaf85b8b4e22f6c445e24cddad8b60cadba73",
+        "changed_outline_pixels": 45,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "failure_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/failure_07.png",
+        "input_sha256": "8505b24d4d5a9b9b2295cc4a44f9bbdcf4ef91aca5c3fe5862c4b8494989e9d9",
+        "output_sha256": "ec79e07a005ae71369600fd9cab6ccc7876555a7154c8b0c2db4b4db5baef4d3",
+        "changed_outline_pixels": 51,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "failure_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/failure_08.png",
+        "input_sha256": "d18e698981ef554ad62d65fd5d3d15a7ac803e57ca89234bd4b333b1d1d58e08",
+        "output_sha256": "8a78addfcf3567157da8721875e97e6e186a3d18a96f2353d40775527025128d",
+        "changed_outline_pixels": 50,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "failure_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/idle_01.png",
+        "input_sha256": "7789e2109c2a1efa430ecb4f331d3b747a51afc729b7e285cf087b6940999432",
+        "output_sha256": "3195deddca2652fcea7bfd522af9a67fb89824537c225baeaf6b825fde024708",
+        "changed_outline_pixels": 28,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "idle_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/idle_02.png",
+        "input_sha256": "e24a063dfac9809738cdc10ce031266ad56a702c16831ab83e277225ca4fba30",
+        "output_sha256": "c528706402c45327f453e5cc44fb816824202404bbb823e641998a5b311e38d1",
+        "changed_outline_pixels": 41,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "idle_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/idle_03.png",
+        "input_sha256": "c61b3d235a4cfaddc208b2a40e155d068669745948ee2d55a2ded7e29cccafd3",
+        "output_sha256": "0d9082047fcc264c8828416e3c78f33c21966c68a70b4282b9b53b32a45cab31",
+        "changed_outline_pixels": 28,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "idle_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/idle_04.png",
+        "input_sha256": "949ada25622c87cc43ade1a8b26580da544a1dfc2ebaa3e4c50fe1cebabbc7b9",
+        "output_sha256": "02af6ede82e0ce451412e46f970cfafaa9a9843c200e45c33704ac5992da2342",
+        "changed_outline_pixels": 34,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "idle_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/idle_05.png",
+        "input_sha256": "6a53f9088d3eddf4593a0a3daddc3c94413c689f4c57085ce7abe80879d9499c",
+        "output_sha256": "5b82fc99983bbde154481f602f183621a1cd4e2ef03a84869c0e9e94f1ca0d8f",
+        "changed_outline_pixels": 29,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "idle_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/idle_06.png",
+        "input_sha256": "c814d4fa91746f7d921518f46dfcc7db0762068854ee23290ed5e499ee37d77c",
+        "output_sha256": "c8953afe3455d7b074efc31e4cd60f07fc94bc0b51fb09dbb588f28a03f1289e",
+        "changed_outline_pixels": 44,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "idle_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/idle_07.png",
+        "input_sha256": "6cf7098233fc01d7eafd7acb104ab30d1731e38bbf3725ae7487964ec3aa8023",
+        "output_sha256": "ca102c6be66baf238081617cea8901a5e29c993a1269ab006dc67612c11a9946",
+        "changed_outline_pixels": 29,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "idle_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/idle_08.png",
+        "input_sha256": "e7ee811506a45857ba81a2810bd027221bbb048508e16de0282cff72f1e0b899",
+        "output_sha256": "1a74eac112a9f64641331e59908c92d5dac594ad4ded2383fdf75b2fa6265e21",
+        "changed_outline_pixels": 33,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "idle_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/receive_01.png",
+        "input_sha256": "7a8ad5e97407303da38756aa5261eefdd47aa87e23bbb59c99690c18f6c1d802",
+        "output_sha256": "daebeed2409a6ab5e7e7f93a004a71ef682ff6fb5268a22b334741221f3f682b",
+        "changed_outline_pixels": 87,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "receive_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/receive_02.png",
+        "input_sha256": "8ff209d8679a45151654995a5b5dedc49fa53666cef31a458381af41526b0ed5",
+        "output_sha256": "f3eafc30cac0863dd604ec104ba9680cf1d92f7f2bc22f422b90391323d4c0da",
+        "changed_outline_pixels": 57,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "receive_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/receive_03.png",
+        "input_sha256": "7d7434e36ca71ba1552e5f188341754a6b8d916352d0d27d7bea0c367e0c2f86",
+        "output_sha256": "3b4e1b2ac8b212ba0528e84d3d311c969e959d5a57435afca2548e602e4e905b",
+        "changed_outline_pixels": 40,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "receive_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/receive_04.png",
+        "input_sha256": "43d98bf84e07483584c662cebe7e479c5fbb370ca850f5dd0b4f5c098b61ee01",
+        "output_sha256": "a84e46579f48ccf748c9f8f27f1ef3cbab8acf626e9207ecd5dfaae7e38e5f7c",
+        "changed_outline_pixels": 48,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "receive_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/receive_05.png",
+        "input_sha256": "88aee9ed019f0e296bdd06cbb6472cccd4cb665779dc4135962c52bff4820b65",
+        "output_sha256": "a82aba47053aeaed3c9fb6b98c1cd292c61c8b7fa447ffefe495f75d2790f15c",
+        "changed_outline_pixels": 39,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "receive_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/receive_06.png",
+        "input_sha256": "d384c3e036b30b4fbab8f684dffb468626f801b5540ac08f0f83c387103e1faf",
+        "output_sha256": "3ef676c25e55e7fae7f9e54e5c2e19d3f4fbe217c3cce5cecb97467d96a2b658",
+        "changed_outline_pixels": 55,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "receive_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/receive_07.png",
+        "input_sha256": "2e62a5f39e061d990a23ed7823a06041c828ec9224a83fbe42f7b625cd7b5d69",
+        "output_sha256": "3252b19e7fbc8b547897e79b6f733d0f1a1ba89344a2df1e1f0551a0648453aa",
+        "changed_outline_pixels": 35,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "receive_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/receive_08.png",
+        "input_sha256": "9cddc661c6f21f058f5662546d1fe16d3e2cabbfe3b91d39004bf24895096f53",
+        "output_sha256": "e1107181926667c2c5b28b9f7ec4743696a792aec1a575081f5362dae1a95191",
+        "changed_outline_pixels": 38,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "receive_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/success_01.png",
+        "input_sha256": "6bd9a3415c9d811df0e779466df3f00938a7d05b4cb1f0dfc79b13cc47ecb634",
+        "output_sha256": "92a3a940f9951abee03c24cf17f46e3d5e978f6a1e8a5dff9559458a9464fb0b",
+        "changed_outline_pixels": 78,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "success_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/success_02.png",
+        "input_sha256": "7df3aea429deae514f3e554161a958d19a5b3d6440dbf0b5882ba28225eb4c10",
+        "output_sha256": "df31638f406ea537866cd8c180e542f4ec20510fae7e6df9688187c90103fa9d",
+        "changed_outline_pixels": 78,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "success_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/success_03.png",
+        "input_sha256": "6664577afde52126febf377eafdbc87783874a91b630378646ae8c89b1edaf6a",
+        "output_sha256": "3c042cfb08f5d772574f65650c2f27e1cd5a1e06f5bd054884a4863b9a161483",
+        "changed_outline_pixels": 68,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "success_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/success_04.png",
+        "input_sha256": "fd356eb8773cab7caa9695fa4ad5a727d092600c767d2e4440193aaf026bd437",
+        "output_sha256": "300b36125b4bae66af875d0d53c7f44a8d58ea9cf1e36c030c95e1f9e8db0977",
+        "changed_outline_pixels": 81,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "success_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/success_05.png",
+        "input_sha256": "eafd86d88f70bf32f27522aabc57106e9c74861f7e52d0dc1bd839a96f3feb6c",
+        "output_sha256": "85c49bbde99241feee5c3edbe5c30e028b756e2238599bf30b30fa8fc8e5e123",
+        "changed_outline_pixels": 59,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "success_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/success_06.png",
+        "input_sha256": "05b293447b9885ae983f5a6c6626c77dcd0d5738ef9180869390e59cd91f7a5f",
+        "output_sha256": "2c1d2ae28747806abf81f9f99f7c46a439cc5cba94cdc95417c4c8f6199865c9",
+        "changed_outline_pixels": 88,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "success_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/success_07.png",
+        "input_sha256": "d8718055746c824255147bcdc1b2cac2f845d15e24a5159c3f4b764119c5d34a",
+        "output_sha256": "60b51816d407a1a98968ed69aa75ea3cb24bffcd880182de9b6002fabf1834b6",
+        "changed_outline_pixels": 71,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 1,
+        "vertical_shift": 0,
+        "body_reference": "success_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      },
+      {
+        "path": "cauldron/magic_cauldron/success_08.png",
+        "input_sha256": "f6605fd2cc076907e8420847822e814554d5ba10cab791b05bcd8f227821f770",
+        "output_sha256": "46b48768fd1106f231e0578504a352f35ca11823d7a97e7055824bada1804576",
+        "changed_outline_pixels": 86,
+        "removed_scanline_pixels": 0,
+        "horizontal_shift": 0,
+        "vertical_shift": 0,
+        "body_reference": "success_01.png",
+        "stable_body_from_y": 74,
+        "animated_fire_xyxy": [
+          34,
+          105,
+          63,
+          116
+        ]
+      }
+    ]
+  }
 }
