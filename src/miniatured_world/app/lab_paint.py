@@ -83,8 +83,8 @@ def _prop(painter: QPainter, layout: LabLayout, props: dict[str, QPixmap], scene
     shadow(painter, x, y - 2, width * 0.8)
     painter.drawPixmap(QRectF(x - width / 2, y - height, width, height), props[key], QRectF(props[key].rect()))
     states = {value.placement.key: value.state for value in scene.gimmicks}
-    if key == "book" and states[key] == "turning" and scene.phase_progress > 0.24:
-        turn = ((scene.phase_progress - 0.24) / 0.76 * 2) % 1
+    if key == "book" and states[key] == "turning" and scene.action_progress > 0.24:
+        turn = ((scene.action_progress - 0.24) / 0.76 * 2) % 1
         hinge_x, hinge_y = x, y - height + 31
         reach = 32 * math.cos(turn * math.pi)
         lift = 23 * math.sin(turn * math.pi)
@@ -94,15 +94,15 @@ def _prop(painter: QPainter, layout: LabLayout, props: dict[str, QPixmap], scene
     if key == "basket" and states[key] in {"arriving", "full", "taking"}:
         count = max(1, len(scene.batch_materials))
         for index, material in enumerate(scene.batch_materials):
-            if states[key] == "arriving" and material_transfer_progress("arrive", scene.phase_progress, index, count) < 1:
+            if states[key] == "arriving" and material_transfer_progress("arrive", scene.action_progress, index, count) < 1:
                 continue
-            if states[key] == "taking" and material_transfer_progress("collect", scene.phase_progress, index, count) > 0:
+            if states[key] == "taking" and material_transfer_progress("collect", scene.action_progress, index, count) > 0:
                 continue
             _material(painter, x - 22 + index * 9, y - 31, material)
         # 前側の縁だけを再描画して素材をかごの内部に見せる。
         sprite = props[key]
         painter.drawPixmap(QRectF(x - width / 2, y - height * 0.4, width, height * 0.4), sprite, QRectF(0, sprite.height() * 0.6, sprite.width(), sprite.height() * 0.4))
-    if key == "product" and scene.product_visible and scene.workflow_phase != "place":
+    if key == "product" and scene.product_visible and not (scene.workflow_phase == "place" and scene.walk_frame is None):
         _bottle(painter, x, y - 12)
 
 
@@ -112,7 +112,8 @@ def _draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixm
     items.append((scene.character_position[1], "character"))
     for _, key in sorted(items):
         if key == "character":
-            sprite = characters.get(scene.character_state) or characters["idle"]
+            sprite_key = f"walk_{scene.walk_frame + 1:02}" if scene.walk_frame is not None else scene.character_state
+            sprite = characters.get(sprite_key) or characters["idle"]
             x, y = scene.character_position
             size = 128 * layout.pixel_scale
             shadow(painter, x, y - 2, size * 0.52)
@@ -130,7 +131,9 @@ def _draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixm
         else:
             _prop(painter, layout, props, scene, key)
 
-    phase, progress = scene.workflow_phase, scene.phase_progress
+    if scene.walk_frame is not None:
+        return
+    phase, progress = scene.workflow_phase, scene.action_progress
     bx, by = layout.gimmick("basket").position
     actor_x, actor_y = scene.character_position
     cauldron = layout.gimmick("cauldron")

@@ -1,5 +1,5 @@
 {
-  "version": "0.9.3",
+  "version": "0.9.4",
   "pixel_scale": 2,
   "character_canvas": [
     128,
@@ -339,7 +339,8 @@
     "character-sheet.png": "d3bffce06d633f477c440b92756435c33991e680acf3e54ad6f1ffbce19242d5",
     "lectern.png": "5d4440ea7dbbaa096552d2000ac49ce69c1c81a090e8a6d0ac64d59749951531",
     "tray.png": "a610088e6593ade1811f5b0c9a90f35cdd9271f99f030dbb9a52df2b117f4427",
-    "work-pose.png": "dfd476ab69a8a41eaa1e7934b2cc1be00fd20d20d7d58f240161940d5d736827"
+    "work-pose.png": "dfd476ab69a8a41eaa1e7934b2cc1be00fd20d20d7d58f240161940d5d736827",
+    "walking-v0.9.4/walk-sheet.png": "1b6d765b161e192ade88d1211aeb726c495a648da944b9236e804abbd2b3c66d"
   },
   "files": [
     {
@@ -661,6 +662,77 @@
         16
       ],
       "sha256": "9f791fb786bb08c27082b0c50fb148af42040dbe8e853c335c6b993b34298e38"
+    },
+    {
+      "path": "characters/alchemist_girl/walk_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "13bdddb8b6fc8c6f04fa7a572aed5854fca387b8a5a7fa3e53d1b426045d96d1"
+    },
+    {
+      "path": "characters/alchemist_girl/walk_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "c1621c3bb88ae5ee0e0aa4555daf8b88a5c72dea769c04d8af34a02d7b5d07e3"
+    },
+    {
+      "path": "characters/alchemist_girl/walk_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "6ac2a1a3c41f229a944f5070bf98d2ca5d6e80502620b3c9deda81c8fc127784"
+    },
+    {
+      "path": "characters/alchemist_girl/walk_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "27a2574a9b45f9d8880b6367a5d3907070971d9d9851aa7bdec82eb72ad5eeb8"
+    },
+    {
+      "path": "characters/alchemist_girl/walk_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1575c7df3b4af64285e028c9ec799a15efda1cbd7967fda6f68395683e0e612f"
+    },
+    {
+      "path": "characters/alchemist_girl/walk_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "af080970a010c7db35b3664da441b48a4937228210501e1d426358057b520952"
+    },
+    {
+      "path": "characters/alchemist_girl/walk_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "05b9022ccd000fe0e7bd21069c0b11bb94db86c6438e8045658bbcc961b55d7b"
+    },
+    {
+      "path": "characters/alchemist_girl/walk_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "950992698066dffe6f9018c514eb36eb16ac913889ff47825ccbb0d2cd525cc3"
     }
-  ]
+  ],
+  "walking": {
+    "frames": 8,
+    "facing": "left",
+    "head_fixed_until_y": 72,
+    "speed": 80,
+    "stride": 48
+  }
 }

@@ -63,6 +63,7 @@ def test_sprite_assets_have_safe_borders_consistent_baselines_and_eight_distinct
     base = resources.files("miniatured_world") / "assets"
     for folder, states, size, baseline, count in (
         ("characters/alchemist_girl", ("idle", "work", "success", "failure", "rest"), (128, 128), 120, 1),
+        ("characters/alchemist_girl", ("walk",), (128, 128), 120, 8),
         ("cauldron/magic_cauldron", ("idle", "receive", "success", "failure"), (96, 112), 104, 8),
     ):
         for state in states:
@@ -142,6 +143,40 @@ def test_workflow_props_render_each_stage_at_multiple_window_sizes() -> None:
                 preview.animation.advance(duration - duration // 2)
             assert len(renders) == len(WORKFLOW)
             assert preview.animation.scene.product_visible
+        assert runtime.snapshot() == before
+    finally:
+        preview.close()
+        window.close()
+        runtime.stop()
+
+
+def test_walk_frames_are_loaded_and_rendered_in_both_directions_at_three_sizes() -> None:
+    app = QApplication.instance() or QApplication([])
+    runtime = AppRuntime.start(seed=17, provider=DemoActivityProvider())
+    window = build_main_window(runtime)
+    window.timer.stop()
+    preview = window.world_tab.preview
+    preview.setParent(None)
+    before = runtime.snapshot()
+    base = replace(before, materials={}, events=(), discoveries=())
+    try:
+        assert all(f"walk_{index:02}" in preview._character_sprites for index in range(1, 9))
+        for size in ((640, 427), (1280, 720), (900, 620)):
+            preview.resize(*size)
+            for start_ms, right in ((5300, False), (8500, True)):
+                preview.set_snapshot(replace(base, seed=18))
+                preview.set_snapshot(base)
+                preview.set_snapshot(replace(base, materials={"water": 1}))
+                preview.animation.advance(start_ms)
+                rendered = set()
+                for frame in range(8):
+                    assert preview.animation.scene.walk_frame == frame
+                    assert preview.animation.scene.facing_right == right
+                    image = QImage(*size, QImage.Format.Format_RGB32)
+                    preview.render(image)
+                    rendered.add(bytes(image.constBits()))
+                    preview.animation.advance(75)
+                assert len(rendered) == 8
         assert runtime.snapshot() == before
     finally:
         preview.close()

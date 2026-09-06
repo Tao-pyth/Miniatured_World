@@ -1,4 +1,7 @@
 from dataclasses import replace
+import math
+
+import pytest
 
 from miniatured_world.activity import ActivityProviderStatus
 from miniatured_world.app.lab import CYCLE_MS, WORKFLOW, LabAnimation, derive_lab_scene, material_transfer_progress
@@ -152,8 +155,9 @@ def test_material_delivery_completes_ordered_workflow_without_changing_world() -
         scene = animation.scene
         assert scene.workflow_phase == phase
         assert scene.phase_progress == 0
-        states.append({item.placement.key: item.state for item in scene.gimmicks})
-        animation.advance(duration)
+        animation.advance(duration // 2)
+        states.append({item.placement.key: item.state for item in animation.scene.gimmicks})
+        animation.advance(duration - duration // 2)
     assert states[0]["basket"] == "arriving"
     assert states[1]["book"] == "turning"
     assert states[2]["basket"] == "taking"
@@ -244,3 +248,79 @@ def test_each_material_arrives_and_leaves_basket_once_before_phase_ends() -> Non
                 assert 0 < values[50] < 1
             assert material_transfer_progress("collect", 0.28, index, count) == 0
             assert material_transfer_progress("collect", 0.95, index, count) == 1
+
+
+@pytest.mark.parametrize("phase,key,start_ms", [("read", "book", 1500), ("collect", "basket", 3700), ("mix", "cauldron", 5300), ("place", "product", 8500), ("return", None, 10300)])
+def test_walk_moves_at_constant_speed_then_starts_work(phase, key, start_ms) -> None:
+    animation = LabAnimation()
+    base = _snapshot(activity_level="active", intensity=0.5)
+    animation.observe(base)
+    animation.observe(replace(base, materials={"seed": 1}))
+    animation.advance(start_ms)
+    origin = animation.scene.character_position
+    target = animation.layout.gimmick(key).work_position if key else animation.layout.character_home
+    assert animation.scene.walk_frame == 0
+    animation.advance(100)
+    walking = animation.scene
+    assert walking.workflow_phase == phase
+    assert walking.character_state == "walk"
+    assert math.dist(origin, walking.character_position) == pytest.approx(8)
+    assert walking.walk_frame == 1  # 8px / 48px * 8コマ
+    assert walking.facing_right == (target[0] > origin[0])
+    assert walking.action_progress == 0
+    assert walking.effects == ()
+    states = {item.placement.key: item.state for item in walking.gimmicks}
+    assert states["book"] == "open"
+    assert states["basket"] not in {"arriving", "taking"}
+    assert states["product"] != "placing"
+    assert states["cauldron"] == "cauldron_idle"
+    arrival_ms = math.ceil(math.dist(origin, target) / 80 * 1000)
+    animation.advance(arrival_ms - 100)
+    arrived = animation.scene
+    assert arrived.character_position == target
+    assert arrived.walk_frame is None
+    assert arrived.character_state != "walk"
+    assert 0 <= arrived.action_progress < 0.006
+    states = {item.placement.key: item.state for item in arrived.gimmicks}
+    expected = {"read": ("book", "turning"), "collect": ("basket", "taking"), "mix": ("cauldron", "cauldron_receive"), "place": ("product", "placing")}
+    if phase in expected:
+        item, value = expected[phase]
+        assert states[item] == value
+
+
+def test_walk_stride_uses_distance_and_is_independent_of_timer_chunking() -> None:
+    animations = [LabAnimation(), LabAnimation()]
+    base = _snapshot()
+    for animation in animations:
+        animation.observe(base)
+        animation.observe(replace(base, materials={"seed": 1}))
+        animation.advance(5300)  # 最長の釜への道で8コマと次周期を検査。
+    frames = []
+    for _ in range(9):
+        frames.append(animations[0].scene.walk_frame)
+        animations[0].advance(75)
+    assert frames == [0, 1, 2, 3, 4, 5, 6, 7, 0]
+    animations[1].advance(675)
+    assert animations[0].scene == animations[1].scene
+
+
+@pytest.mark.parametrize("freeze", [{"paused": True}, {"world_visible": False}])
+def test_mid_walk_freezes_pose_and_position_and_resumes_without_restart(freeze) -> None:
+    animation = LabAnimation()
+    base = _snapshot()
+    delivered = replace(base, materials={"water": 1}, world_time=2)
+    animation.observe(base)
+    animation.observe(delivered)
+    animation.advance(1675)
+    walking = animation.scene
+    assert walking.walk_frame is not None
+    animation.observe(replace(delivered, **freeze))
+    animation.advance(5000)
+    assert animation.scene == walking
+    animation.observe(delivered)
+    animation.observe(delivered)  # 同じ通知でもリセットしない。
+    animation.advance(75)
+    assert animation.scene.walk_frame == (walking.walk_frame + 1) % 8
+    animation.observe(replace(delivered, world_time=0))
+    assert animation.scene.walk_frame is None
+    assert animation.scene.character_position == animation.layout.character_home
