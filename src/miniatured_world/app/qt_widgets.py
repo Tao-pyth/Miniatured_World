@@ -391,7 +391,7 @@ def build_main_window(
             base = resources.files("miniatured_world") / "assets" / "characters" / "alchemist_girl"
         except ModuleNotFoundError:
             return sprites
-        for state in ("idle", "work", "success", "failure", "rest"):
+        for state in ("idle", "work", "success", "failure", "rest", *(f"walk_{index:02}" for index in range(1, 9))):
             try:
                 data = (base / f"{state}.png").read_bytes()
             except FileNotFoundError:

@@ -24,7 +24,7 @@ def main() -> None:
     preview = window.world_tab.preview
     preview.setParent(None)
     preview.resize(1280, 853)
-    output = Path("logs/pixel-v0.9.3/workflow")
+    output = Path("logs/walking-v0.9.4/workflow")
     output.mkdir(parents=True, exist_ok=True)
     base = replace(runtime.snapshot(), materials={}, grid_materials={}, discoveries=(), events=(), activity_level="calm", activity_intensity=0)
     preview.set_snapshot(replace(base, seed=18))
@@ -34,10 +34,14 @@ def main() -> None:
     frames = []
     captured = set()
     try:
-        for index in range(104):
+        for index in range(260):
             image = QImage(1280, 853, QImage.Format.Format_RGB32)
             preview.render(image)
             scene = preview.animation.scene
+            walk_key = f"walk-{scene.workflow_phase}"
+            if scene.walk_frame == 2 and walk_key not in captured:
+                image.save(str(output / f"{walk_key}.png"))
+                captured.add(walk_key)
             if scene.phase_progress >= 0.5 and scene.workflow_phase not in captured:
                 image.save(str(output / f"{scene.workflow_phase}.png"))
                 captured.add(scene.workflow_phase)
@@ -52,16 +56,16 @@ def main() -> None:
             path = output / f"frame-{index:03}.png"
             canvas.save(str(path))
             frames.append(path)
-            preview.animation.advance(125)
+            preview.animation.advance(50)
         from PIL import Image
 
         images = [Image.open(path).convert("RGB") for path in frames]
         sample = Image.new("RGB", (960, 678 * 3))
-        for row, index in enumerate((0, 48, 76)):
+        for row, index in enumerate((0, 120, 190)):
             sample.paste(images[index], (0, row * 678))
         palette = sample.quantize(colors=256)
         images = [image.quantize(palette=palette, dither=Image.Dither.NONE) for image in images]
-        images[0].save(output / "workflow.gif", save_all=True, append_images=images[1:], duration=[120, 130] * 52, loop=0)
+        images[0].save(output / "workflow.gif", save_all=True, append_images=images[1:], duration=50, loop=0)
         print(output / "workflow.gif")
     finally:
         preview.close()

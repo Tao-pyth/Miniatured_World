@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import math
 
 from miniatured_world.app.snapshot import WorldSnapshot
 from miniatured_world.app.lab_layout import DEFAULT_LAYOUT, GimmickPlacement, LabLayout
@@ -14,6 +15,9 @@ class GimmickState:
 
 WORKFLOW = (("arrive", 1500), ("read", 2200), ("collect", 1600), ("mix", 3200), ("place", 1800), ("return", 700))
 CYCLE_MS = sum(duration for _, duration in WORKFLOW)
+WALK_SPEED = 80.0  # 舞台ピクセル/秒。画面の拡縮率には依存しない。
+WALK_STRIDE = 48.0  # 左右の足が一巡する移動距離。
+WALK_FRAMES = 8
 
 
 def material_transfer_progress(phase: str, progress: float, index: int, count: int) -> float:
@@ -36,6 +40,8 @@ class LabScene:
     caption: str
     workflow_phase: str = "idle"
     phase_progress: float = 0.0
+    action_progress: float = 0.0
+    walk_frame: int | None = None
     gimmicks: tuple[GimmickState, ...] = ()
     character_position: tuple[float, float] = DEFAULT_LAYOUT.character_home
     facing_right: bool = False
@@ -132,7 +138,8 @@ class LabAnimation:
         if self._snapshot is None:
             return None
         base = derive_lab_scene(self._snapshot, reaction=self.elapsed_ms < self._reaction_until)
-        phase, progress = "idle", 0.0
+        phase, progress, action_progress = "idle", 0.0, 0.0
+        walk_frame = None
         states = {"book": "open", "basket": "empty", "cauldron": base.cauldron_state, "product": "ready" if self._product_visible else "empty"}
         position = self.layout.character_home
         facing_right = False
@@ -145,21 +152,33 @@ class LabAnimation:
                 target = self.layout.character_home if target_key is None else self.layout.gimmick(target_key).work_position
                 if elapsed < duration:
                     phase, progress = name, elapsed / duration
-                    # 最初の0.45秒で近接する作業位置へ移る。瞬間移動を避ける。
-                    blend = min(1.0, elapsed / 450)
-                    blend = blend * blend * (3 - 2 * blend)
+                    distance = math.dist(previous_position, target)
+                    travel_ms = distance / WALK_SPEED * 1000
+                    travelled = min(distance, elapsed / 1000 * WALK_SPEED)
+                    blend = travelled / distance if distance else 1.0
                     position = tuple(a + (b - a) * blend for a, b in zip(previous_position, target))
+                    if travelled < distance:
+                        walk_frame = int(travelled / WALK_STRIDE * WALK_FRAMES) % WALK_FRAMES
+                        facing_right = target[0] > previous_position[0]
+                    else:
+                        action_progress = min(1.0, max(0.0, (elapsed - travel_ms) / max(1.0, duration - travel_ms)))
                     break
                 elapsed -= duration
                 previous_position = target
             captions = {"arrive": "素材かごに新しい素材が届きました", "read": "本をめくって手順を確認しています", "collect": "かごから素材を取り出しています", "mix": "素材を釜で調合しています", "place": "完成した小瓶をトレーへ置いています", "return": "次の素材を待っています"}
-            states["basket"] = "arriving" if phase == "arrive" else "taking" if phase == "collect" else "full" if phase == "read" else "empty"
-            states["book"] = "turning" if phase == "read" else "open"
-            states["product"] = "placing" if phase == "place" else states["product"]
-            states["cauldron"] = "cauldron_receive" if phase in {"collect", "mix"} else "cauldron_success" if phase == "place" else "cauldron_idle"
-            facing_right = phase in {"read", "place"}
-            if not self._snapshot.paused:
+            walking = walk_frame is not None
+            states["basket"] = "arriving" if phase == "arrive" else "taking" if phase == "collect" and not walking else "full" if phase in {"read", "collect"} else "empty"
+            states["book"] = "turning" if phase == "read" and not walking else "open"
+            states["product"] = "placing" if phase == "place" and not walking else states["product"]
+            states["cauldron"] = "cauldron_receive" if phase in {"collect", "mix"} and not walking else "cauldron_success" if phase == "place" and not walking else "cauldron_idle"
+            if walking:
+                destinations = {"read": "本", "collect": "素材かご", "mix": "釜", "place": "トレー", "return": "待機位置"}
+                # 一時停止時も歩行中の姿勢を保つ。時間はadvance側で凍結する。
+                base = replace(base, character_state="walk", cauldron_state=states["cauldron"], effects=(), caption=f"{destinations[phase]}へ歩いています")
+            elif not self._snapshot.paused:
+                facing_right = phase in {"read", "place"}
                 base = replace(base, character_state="success" if phase == "place" else "work" if phase == "mix" else "idle", cauldron_state=states["cauldron"], effects=("reaction_light",) if phase in {"mix", "place"} else (), caption=captions[phase])
             else:
+                facing_right = phase in {"read", "place"}
                 states["cauldron"] = base.cauldron_state
-        return replace(base, workflow_phase=phase, phase_progress=progress, gimmicks=tuple(GimmickState(item, states[item.key]) for item in self.layout.gimmicks), character_position=position, facing_right=facing_right, batch_materials=self._batch_materials, product_visible=self._product_visible)
+        return replace(base, workflow_phase=phase, phase_progress=progress, action_progress=action_progress, walk_frame=walk_frame, gimmicks=tuple(GimmickState(item, states[item.key]) for item in self.layout.gimmicks), character_position=position, facing_right=facing_right, batch_materials=self._batch_materials, product_visible=self._product_visible)
