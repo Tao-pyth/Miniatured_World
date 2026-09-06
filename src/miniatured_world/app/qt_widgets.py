@@ -26,6 +26,7 @@ def build_main_window(
     from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
     from miniatured_world.app.lab_layout import DEFAULT_LAYOUT
     from miniatured_world.app.lab_paint import draw_lab_scene, load_props
+    from miniatured_world.app.lab_hands import load_hand_assets
     from PySide6.QtWidgets import (
         QCheckBox,
         QComboBox,
@@ -64,6 +65,7 @@ def build_main_window(
             self._character_sprites = _load_character_sprites()
             self._cauldron_sprites = _load_cauldron_sprites()
             self._props = load_props()
+            self._hand_assets = load_hand_assets()
             self.animation = LabAnimation()
             self._animation_clock = QElapsedTimer()
             self.animation_timer = QTimer(self)
@@ -118,7 +120,7 @@ def build_main_window(
             scene = self.animation.scene
             if scene is None:
                 return
-            draw_lab_scene(painter, DEFAULT_LAYOUT, self._props, self._character_sprites, self._cauldron_sprites, scene, self.animation.elapsed_ms, self.animation.frame_index)
+            draw_lab_scene(painter, DEFAULT_LAYOUT, self._props, self._character_sprites, self._cauldron_sprites, scene, self.animation.elapsed_ms, self.animation.frame_index, hand_assets=self._hand_assets)
 
     class _InfoPill(QFrame):
         def __init__(self, title: str) -> None:
@@ -391,9 +393,12 @@ def build_main_window(
             base = resources.files("miniatured_world") / "assets" / "characters" / "alchemist_girl"
         except ModuleNotFoundError:
             return sprites
-        for state in ("idle", "work", "success", "failure", "rest", *(f"walk_{index:02}" for index in range(1, 9))):
+        for asset in sorted(base.iterdir(), key=lambda path: path.name):
+            if not asset.name.endswith(".png"):
+                continue
+            state = asset.name.removesuffix(".png")
             try:
-                data = (base / f"{state}.png").read_bytes()
+                data = asset.read_bytes()
             except FileNotFoundError:
                 continue
             image = QImage()

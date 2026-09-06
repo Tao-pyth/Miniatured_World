@@ -1,0 +1,2567 @@
+{
+  "schema": 1,
+  "native_size": [
+    128,
+    128
+  ],
+  "baseline": 120,
+  "series": {
+    "read": {
+      "duration_ms": 1800,
+      "unique_originals": 12,
+      "events": {
+        "touch": 4,
+        "release": 8
+      },
+      "frames": [
+        {
+          "sprite": "characters/alchemist_girl/read_01.png",
+          "hand_mask": "hands/read_01.png",
+          "source": "read-01",
+          "grip": [
+            47,
+            80
+          ],
+          "left_wrist": [
+            51,
+            78
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 100,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_02.png",
+          "hand_mask": "hands/read_02.png",
+          "source": "read-10",
+          "grip": [
+            40,
+            78
+          ],
+          "left_wrist": [
+            44,
+            76
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 100,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_03.png",
+          "hand_mask": "hands/read_03.png",
+          "source": "read-02",
+          "grip": [
+            38,
+            77
+          ],
+          "left_wrist": [
+            42,
+            75
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 100,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_04.png",
+          "hand_mask": "hands/read_04.png",
+          "source": "read-03",
+          "grip": [
+            32,
+            72
+          ],
+          "left_wrist": [
+            36,
+            70
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 100,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_05.png",
+          "hand_mask": "hands/read_05.png",
+          "source": "read-06",
+          "grip": [
+            33,
+            69
+          ],
+          "left_wrist": [
+            37,
+            67
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 200,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_06.png",
+          "hand_mask": "hands/read_06.png",
+          "source": "read-07",
+          "grip": [
+            33,
+            69
+          ],
+          "left_wrist": [
+            37,
+            67
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 150,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_07.png",
+          "hand_mask": "hands/read_07.png",
+          "source": "read-05",
+          "grip": [
+            27,
+            69
+          ],
+          "left_wrist": [
+            31,
+            67
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 150,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_08.png",
+          "hand_mask": "hands/read_08.png",
+          "source": "read-04",
+          "grip": [
+            26,
+            67
+          ],
+          "left_wrist": [
+            30,
+            65
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 150,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_09.png",
+          "hand_mask": "hands/read_09.png",
+          "source": "read-08",
+          "grip": [
+            28,
+            70
+          ],
+          "left_wrist": [
+            32,
+            68
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 150,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_10.png",
+          "hand_mask": "hands/read_10.png",
+          "source": "read-09",
+          "grip": [
+            34,
+            73
+          ],
+          "left_wrist": [
+            38,
+            71
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 100,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_11.png",
+          "hand_mask": "hands/read_11.png",
+          "source": "read-10",
+          "grip": [
+            40,
+            78
+          ],
+          "left_wrist": [
+            44,
+            76
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 100,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_12.png",
+          "hand_mask": "hands/read_12.png",
+          "source": "read-11",
+          "grip": [
+            47,
+            80
+          ],
+          "left_wrist": [
+            51,
+            78
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 100,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/read_13.png",
+          "hand_mask": "hands/read_13.png",
+          "source": "read-12",
+          "grip": [
+            47,
+            80
+          ],
+          "left_wrist": [
+            51,
+            78
+          ],
+          "right_wrist": [
+            80,
+            76
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 300,
+          "vessel_angle": 0
+        }
+      ]
+    },
+    "collect": {
+      "duration_ms": 2200,
+      "unique_originals": 16,
+      "events": {
+        "grab": 8
+      },
+      "frames": [
+        {
+          "sprite": "characters/alchemist_girl/collect_01.png",
+          "hand_mask": "hands/collect_01.png",
+          "source": "collect-01",
+          "grip": [
+            43,
+            88
+          ],
+          "left_wrist": [
+            47,
+            86
+          ],
+          "right_wrist": [
+            69,
+            73
+          ],
+          "head_offset": [
+            -8,
+            -6
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_02.png",
+          "hand_mask": "hands/collect_02.png",
+          "source": "place-01",
+          "grip": [
+            42,
+            94
+          ],
+          "left_wrist": [
+            46,
+            92
+          ],
+          "right_wrist": [
+            69,
+            79
+          ],
+          "head_offset": [
+            -6,
+            -4
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_03.png",
+          "hand_mask": "hands/collect_03.png",
+          "source": "collect-lower-01",
+          "grip": [
+            41,
+            95
+          ],
+          "left_wrist": [
+            45,
+            93
+          ],
+          "right_wrist": [
+            71,
+            85
+          ],
+          "head_offset": [
+            -13,
+            0
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_04.png",
+          "hand_mask": "hands/collect_04.png",
+          "source": "collect-lower-02",
+          "grip": [
+            42,
+            102
+          ],
+          "left_wrist": [
+            46,
+            100
+          ],
+          "right_wrist": [
+            75,
+            91
+          ],
+          "head_offset": [
+            -13,
+            6
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_05.png",
+          "hand_mask": "hands/collect_05.png",
+          "source": "place-03",
+          "grip": [
+            39,
+            109
+          ],
+          "left_wrist": [
+            43,
+            107
+          ],
+          "right_wrist": [
+            73,
+            93
+          ],
+          "head_offset": [
+            -8,
+            17
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_06.png",
+          "hand_mask": "hands/collect_06.png",
+          "source": "collect-lower-03",
+          "grip": [
+            41,
+            113
+          ],
+          "left_wrist": [
+            45,
+            111
+          ],
+          "right_wrist": [
+            78,
+            97
+          ],
+          "head_offset": [
+            -11,
+            17
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_07.png",
+          "hand_mask": "hands/collect_07.png",
+          "source": "collect-lower-04",
+          "grip": [
+            42,
+            115
+          ],
+          "left_wrist": [
+            44,
+            111
+          ],
+          "right_wrist": [
+            78,
+            102
+          ],
+          "head_offset": [
+            -14,
+            22
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_08.png",
+          "hand_mask": "hands/collect_08.png",
+          "source": "collect-04",
+          "grip": [
+            36,
+            117
+          ],
+          "left_wrist": [
+            40,
+            115
+          ],
+          "right_wrist": [
+            73,
+            97
+          ],
+          "head_offset": [
+            -11,
+            30
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 160,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_09.png",
+          "hand_mask": "hands/collect_09.png",
+          "source": "collect-07",
+          "grip": [
+            37,
+            116
+          ],
+          "left_wrist": [
+            41,
+            114
+          ],
+          "right_wrist": [
+            72,
+            96
+          ],
+          "head_offset": [
+            -14,
+            29
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 240,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_10.png",
+          "hand_mask": "hands/collect_10.png",
+          "source": "collect-rise-01",
+          "grip": [
+            39,
+            117
+          ],
+          "left_wrist": [
+            43,
+            115
+          ],
+          "right_wrist": [
+            68,
+            96
+          ],
+          "head_offset": [
+            -17,
+            27
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_11.png",
+          "hand_mask": "hands/collect_11.png",
+          "source": "collect-rise-02",
+          "grip": [
+            40,
+            113
+          ],
+          "left_wrist": [
+            44,
+            111
+          ],
+          "right_wrist": [
+            70,
+            92
+          ],
+          "head_offset": [
+            -15,
+            21
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_12.png",
+          "hand_mask": "hands/collect_12.png",
+          "source": "collect-rise-03",
+          "grip": [
+            40,
+            108
+          ],
+          "left_wrist": [
+            44,
+            106
+          ],
+          "right_wrist": [
+            72,
+            87
+          ],
+          "head_offset": [
+            -14,
+            16
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_13.png",
+          "hand_mask": "hands/collect_13.png",
+          "source": "collect-rise-04",
+          "grip": [
+            40,
+            100
+          ],
+          "left_wrist": [
+            44,
+            98
+          ],
+          "right_wrist": [
+            70,
+            87
+          ],
+          "head_offset": [
+            -15,
+            9
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_14.png",
+          "hand_mask": "hands/collect_14.png",
+          "source": "collect-rise-05",
+          "grip": [
+            42,
+            93
+          ],
+          "left_wrist": [
+            46,
+            91
+          ],
+          "right_wrist": [
+            72,
+            82
+          ],
+          "head_offset": [
+            -13,
+            1
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_15.png",
+          "hand_mask": "hands/collect_15.png",
+          "source": "collect-rise-06",
+          "grip": [
+            41,
+            87
+          ],
+          "left_wrist": [
+            45,
+            85
+          ],
+          "right_wrist": [
+            75,
+            77
+          ],
+          "head_offset": [
+            -13,
+            -4
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/collect_16.png",
+          "hand_mask": "hands/collect_16.png",
+          "source": "collect-12",
+          "grip": [
+            43,
+            86
+          ],
+          "left_wrist": [
+            47,
+            84
+          ],
+          "right_wrist": [
+            68,
+            74
+          ],
+          "head_offset": [
+            -8,
+            -6
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 240,
+          "vessel_angle": 0
+        }
+      ]
+    },
+    "mix": {
+      "duration_ms": 3200,
+      "unique_originals": 14,
+      "events": {
+        "pour_start": 6,
+        "pour_end": 8,
+        "recover": 12
+      },
+      "frames": [
+        {
+          "sprite": "characters/alchemist_girl/mix_01.png",
+          "hand_mask": "hands/mix_01.png",
+          "source": "mix-reach-02",
+          "grip": [
+            41,
+            79
+          ],
+          "left_wrist": [
+            45,
+            77
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_02.png",
+          "hand_mask": "hands/mix_02.png",
+          "source": "mix-reach-15",
+          "grip": [
+            40,
+            79
+          ],
+          "left_wrist": [
+            44,
+            77
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_03.png",
+          "hand_mask": "hands/mix_03.png",
+          "source": "mix-reach-14",
+          "grip": [
+            34,
+            75
+          ],
+          "left_wrist": [
+            38,
+            73
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_04.png",
+          "hand_mask": "hands/mix_04.png",
+          "source": "mix-reach-03",
+          "grip": [
+            30,
+            74
+          ],
+          "left_wrist": [
+            34,
+            72
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_05.png",
+          "hand_mask": "hands/mix_05.png",
+          "source": "mix-reach-04",
+          "grip": [
+            22,
+            74
+          ],
+          "left_wrist": [
+            26,
+            72
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": -10
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_06.png",
+          "hand_mask": "hands/mix_06.png",
+          "source": "mix-reach-05",
+          "grip": [
+            26,
+            72
+          ],
+          "left_wrist": [
+            30,
+            70
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": -35
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_07.png",
+          "hand_mask": "hands/mix_07.png",
+          "source": "mix-reach-06",
+          "grip": [
+            27,
+            75
+          ],
+          "left_wrist": [
+            31,
+            73
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": -80
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_08.png",
+          "hand_mask": "hands/mix_08.png",
+          "source": "mix-reach-07",
+          "grip": [
+            28,
+            76
+          ],
+          "left_wrist": [
+            32,
+            74
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 375,
+          "vessel_angle": -100
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_09.png",
+          "hand_mask": "hands/mix_09.png",
+          "source": "mix-reach-08",
+          "grip": [
+            22,
+            72
+          ],
+          "left_wrist": [
+            26,
+            70
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": -45
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_10.png",
+          "hand_mask": "hands/mix_10.png",
+          "source": "mix-reach-09",
+          "grip": [
+            26,
+            73
+          ],
+          "left_wrist": [
+            30,
+            71
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 725,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_11.png",
+          "hand_mask": "hands/mix_11.png",
+          "source": "mix-reach-10",
+          "grip": [
+            29,
+            77
+          ],
+          "left_wrist": [
+            33,
+            75
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": 90
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_12.png",
+          "hand_mask": "hands/mix_12.png",
+          "source": "mix-reach-11",
+          "grip": [
+            28,
+            79
+          ],
+          "left_wrist": [
+            32,
+            77
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 350,
+          "vessel_angle": 180
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_13.png",
+          "hand_mask": "hands/mix_13.png",
+          "source": "mix-reach-12",
+          "grip": [
+            25,
+            79
+          ],
+          "left_wrist": [
+            29,
+            77
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 250,
+          "vessel_angle": 180
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_14.png",
+          "hand_mask": "hands/mix_14.png",
+          "source": "mix-reach-13",
+          "grip": [
+            28,
+            72
+          ],
+          "left_wrist": [
+            32,
+            70
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": 90
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_15.png",
+          "hand_mask": "hands/mix_15.png",
+          "source": "mix-reach-14",
+          "grip": [
+            34,
+            75
+          ],
+          "left_wrist": [
+            38,
+            73
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": 30
+        },
+        {
+          "sprite": "characters/alchemist_girl/mix_16.png",
+          "hand_mask": "hands/mix_16.png",
+          "source": "mix-reach-15",
+          "grip": [
+            40,
+            79
+          ],
+          "left_wrist": [
+            44,
+            77
+          ],
+          "right_wrist": [
+            72,
+            78
+          ],
+          "head_offset": [
+            -4,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 125,
+          "vessel_angle": 0
+        }
+      ]
+    },
+    "place": {
+      "duration_ms": 2200,
+      "unique_originals": 16,
+      "events": {
+        "contact": 7,
+        "release": 8
+      },
+      "frames": [
+        {
+          "sprite": "characters/alchemist_girl/place_01.png",
+          "hand_mask": "hands/place_01.png",
+          "source": "collect-12",
+          "grip": [
+            43,
+            86
+          ],
+          "left_wrist": [
+            47,
+            84
+          ],
+          "right_wrist": [
+            68,
+            74
+          ],
+          "head_offset": [
+            -8,
+            -6
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_02.png",
+          "hand_mask": "hands/place_02.png",
+          "source": "collect-rise-06",
+          "grip": [
+            41,
+            87
+          ],
+          "left_wrist": [
+            45,
+            85
+          ],
+          "right_wrist": [
+            75,
+            77
+          ],
+          "head_offset": [
+            -13,
+            -4
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_03.png",
+          "hand_mask": "hands/place_03.png",
+          "source": "place-11",
+          "grip": [
+            41,
+            95
+          ],
+          "left_wrist": [
+            45,
+            93
+          ],
+          "right_wrist": [
+            71,
+            81
+          ],
+          "head_offset": [
+            -6,
+            -3
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_04.png",
+          "hand_mask": "hands/place_04.png",
+          "source": "collect-rise-04",
+          "grip": [
+            40,
+            100
+          ],
+          "left_wrist": [
+            44,
+            98
+          ],
+          "right_wrist": [
+            70,
+            87
+          ],
+          "head_offset": [
+            -15,
+            9
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_05.png",
+          "hand_mask": "hands/place_05.png",
+          "source": "collect-rise-03",
+          "grip": [
+            40,
+            108
+          ],
+          "left_wrist": [
+            44,
+            106
+          ],
+          "right_wrist": [
+            72,
+            87
+          ],
+          "head_offset": [
+            -14,
+            16
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_06.png",
+          "hand_mask": "hands/place_06.png",
+          "source": "collect-rise-02",
+          "grip": [
+            40,
+            113
+          ],
+          "left_wrist": [
+            44,
+            111
+          ],
+          "right_wrist": [
+            70,
+            92
+          ],
+          "head_offset": [
+            -15,
+            21
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_07.png",
+          "hand_mask": "hands/place_07.png",
+          "source": "collect-rise-01",
+          "grip": [
+            39,
+            117
+          ],
+          "left_wrist": [
+            43,
+            115
+          ],
+          "right_wrist": [
+            68,
+            96
+          ],
+          "head_offset": [
+            -17,
+            27
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_08.png",
+          "hand_mask": "hands/place_08.png",
+          "source": "collect-07",
+          "grip": [
+            37,
+            116
+          ],
+          "left_wrist": [
+            41,
+            114
+          ],
+          "right_wrist": [
+            72,
+            96
+          ],
+          "head_offset": [
+            -14,
+            29
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 240,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_09.png",
+          "hand_mask": "hands/place_09.png",
+          "source": "collect-04",
+          "grip": [
+            36,
+            117
+          ],
+          "left_wrist": [
+            40,
+            115
+          ],
+          "right_wrist": [
+            73,
+            97
+          ],
+          "head_offset": [
+            -11,
+            30
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 200,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_10.png",
+          "hand_mask": "hands/place_10.png",
+          "source": "collect-lower-04",
+          "grip": [
+            42,
+            115
+          ],
+          "left_wrist": [
+            44,
+            111
+          ],
+          "right_wrist": [
+            78,
+            102
+          ],
+          "head_offset": [
+            -14,
+            22
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_11.png",
+          "hand_mask": "hands/place_11.png",
+          "source": "collect-lower-03",
+          "grip": [
+            41,
+            113
+          ],
+          "left_wrist": [
+            45,
+            111
+          ],
+          "right_wrist": [
+            78,
+            97
+          ],
+          "head_offset": [
+            -11,
+            17
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_12.png",
+          "hand_mask": "hands/place_12.png",
+          "source": "place-03",
+          "grip": [
+            39,
+            109
+          ],
+          "left_wrist": [
+            43,
+            107
+          ],
+          "right_wrist": [
+            73,
+            93
+          ],
+          "head_offset": [
+            -8,
+            17
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_13.png",
+          "hand_mask": "hands/place_13.png",
+          "source": "place-09",
+          "grip": [
+            38,
+            102
+          ],
+          "left_wrist": [
+            42,
+            100
+          ],
+          "right_wrist": [
+            69,
+            87
+          ],
+          "head_offset": [
+            -16,
+            10
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_14.png",
+          "hand_mask": "hands/place_14.png",
+          "source": "collect-lower-01",
+          "grip": [
+            41,
+            95
+          ],
+          "left_wrist": [
+            45,
+            93
+          ],
+          "right_wrist": [
+            71,
+            85
+          ],
+          "head_offset": [
+            -13,
+            0
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_15.png",
+          "hand_mask": "hands/place_15.png",
+          "source": "place-01",
+          "grip": [
+            42,
+            94
+          ],
+          "left_wrist": [
+            46,
+            92
+          ],
+          "right_wrist": [
+            69,
+            79
+          ],
+          "head_offset": [
+            -6,
+            -4
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 120,
+          "vessel_angle": 0
+        },
+        {
+          "sprite": "characters/alchemist_girl/place_16.png",
+          "hand_mask": "hands/place_16.png",
+          "source": "collect-01",
+          "grip": [
+            43,
+            88
+          ],
+          "left_wrist": [
+            47,
+            86
+          ],
+          "right_wrist": [
+            69,
+            73
+          ],
+          "head_offset": [
+            -8,
+            -6
+          ],
+          "feet": [
+            [
+              52,
+              120
+            ],
+            [
+              74,
+              120
+            ]
+          ],
+          "opening_offset": [
+            0,
+            -2
+          ],
+          "duration_ms": 200,
+          "vessel_angle": 0
+        }
+      ]
+    }
+  },
+  "walking": [
+    {
+      "sprite": "characters/alchemist_girl/carry_walk_01.png",
+      "hand_mask": "hands/collect_16.png",
+      "grip": [
+        43,
+        86
+      ],
+      "left_wrist": [
+        47,
+        84
+      ],
+      "right_wrist": [
+        68,
+        74
+      ],
+      "feet": [
+        [
+          54,
+          120
+        ],
+        [
+          76,
+          120
+        ]
+      ],
+      "opening_offset": [
+        0,
+        -2
+      ]
+    },
+    {
+      "sprite": "characters/alchemist_girl/carry_walk_02.png",
+      "hand_mask": "hands/collect_16.png",
+      "grip": [
+        43,
+        86
+      ],
+      "left_wrist": [
+        47,
+        84
+      ],
+      "right_wrist": [
+        68,
+        74
+      ],
+      "feet": [
+        [
+          54,
+          120
+        ],
+        [
+          76,
+          120
+        ]
+      ],
+      "opening_offset": [
+        0,
+        -2
+      ]
+    },
+    {
+      "sprite": "characters/alchemist_girl/carry_walk_03.png",
+      "hand_mask": "hands/collect_16.png",
+      "grip": [
+        43,
+        86
+      ],
+      "left_wrist": [
+        47,
+        84
+      ],
+      "right_wrist": [
+        68,
+        74
+      ],
+      "feet": [
+        [
+          54,
+          120
+        ],
+        [
+          76,
+          120
+        ]
+      ],
+      "opening_offset": [
+        0,
+        -2
+      ]
+    },
+    {
+      "sprite": "characters/alchemist_girl/carry_walk_04.png",
+      "hand_mask": "hands/collect_16.png",
+      "grip": [
+        43,
+        86
+      ],
+      "left_wrist": [
+        47,
+        84
+      ],
+      "right_wrist": [
+        68,
+        74
+      ],
+      "feet": [
+        [
+          54,
+          120
+        ],
+        [
+          76,
+          120
+        ]
+      ],
+      "opening_offset": [
+        0,
+        -2
+      ]
+    },
+    {
+      "sprite": "characters/alchemist_girl/carry_walk_05.png",
+      "hand_mask": "hands/collect_16.png",
+      "grip": [
+        43,
+        86
+      ],
+      "left_wrist": [
+        47,
+        84
+      ],
+      "right_wrist": [
+        68,
+        74
+      ],
+      "feet": [
+        [
+          54,
+          120
+        ],
+        [
+          76,
+          120
+        ]
+      ],
+      "opening_offset": [
+        0,
+        -2
+      ]
+    },
+    {
+      "sprite": "characters/alchemist_girl/carry_walk_06.png",
+      "hand_mask": "hands/collect_16.png",
+      "grip": [
+        43,
+        86
+      ],
+      "left_wrist": [
+        47,
+        84
+      ],
+      "right_wrist": [
+        68,
+        74
+      ],
+      "feet": [
+        [
+          54,
+          120
+        ],
+        [
+          76,
+          120
+        ]
+      ],
+      "opening_offset": [
+        0,
+        -2
+      ]
+    },
+    {
+      "sprite": "characters/alchemist_girl/carry_walk_07.png",
+      "hand_mask": "hands/collect_16.png",
+      "grip": [
+        43,
+        86
+      ],
+      "left_wrist": [
+        47,
+        84
+      ],
+      "right_wrist": [
+        68,
+        74
+      ],
+      "feet": [
+        [
+          54,
+          120
+        ],
+        [
+          76,
+          120
+        ]
+      ],
+      "opening_offset": [
+        0,
+        -2
+      ]
+    },
+    {
+      "sprite": "characters/alchemist_girl/carry_walk_08.png",
+      "hand_mask": "hands/collect_16.png",
+      "grip": [
+        43,
+        86
+      ],
+      "left_wrist": [
+        47,
+        84
+      ],
+      "right_wrist": [
+        68,
+        74
+      ],
+      "feet": [
+        [
+          54,
+          120
+        ],
+        [
+          76,
+          120
+        ]
+      ],
+      "opening_offset": [
+        0,
+        -2
+      ]
+    }
+  ],
+  "vial": {
+    "grip": [
+      12,
+      10
+    ],
+    "opening": [
+      12,
+      8
+    ],
+    "base": [
+      12,
+      24
+    ],
+    "size": [
+      24,
+      32
+    ]
+  }
+}

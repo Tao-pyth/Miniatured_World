@@ -6,6 +6,7 @@ import pytest
 from miniatured_world.activity import ActivityProviderStatus
 from miniatured_world.app.lab import CYCLE_MS, WORKFLOW, LabAnimation, derive_lab_scene, material_transfer_progress
 from miniatured_world.app.snapshot import WorldSnapshot
+from miniatured_world.app.hand_motion import motion_clip
 
 
 def _snapshot(
@@ -198,11 +199,11 @@ def test_workflow_pause_visibility_and_session_reset() -> None:
     delivered = replace(base, materials={"mineral": 1}, world_time=2)
     animation.observe(base)
     animation.observe(delivered)
-    animation.advance(1900)
+    animation.advance(animation.action_start_ms("read") + 250)
     reading = animation.scene
     animation.observe(replace(delivered, paused=True))
     animation.advance(2000)
-    assert animation.scene.character_state == "rest"
+    assert animation.scene == reading
     animation.observe(replace(delivered, world_visible=False))
     animation.advance(2000)
     animation.observe(delivered)
@@ -250,13 +251,13 @@ def test_each_material_arrives_and_leaves_basket_once_before_phase_ends() -> Non
             assert material_transfer_progress("collect", 0.95, index, count) == 1
 
 
-@pytest.mark.parametrize("phase,key,start_ms", [("read", "book", 1500), ("collect", "basket", 3700), ("mix", "cauldron", 5300), ("place", "product", 8500), ("return", None, 10300)])
-def test_walk_moves_at_constant_speed_then_starts_work(phase, key, start_ms) -> None:
+@pytest.mark.parametrize("phase,key", [("read", "book"), ("collect", "basket"), ("mix", "cauldron"), ("place", "product"), ("return", None)])
+def test_walk_moves_at_constant_speed_then_starts_work(phase, key) -> None:
     animation = LabAnimation()
     base = _snapshot(activity_level="active", intensity=0.5)
     animation.observe(base)
     animation.observe(replace(base, materials={"seed": 1}))
-    animation.advance(start_ms)
+    animation.advance(animation.phase_start_ms(phase))
     origin = animation.scene.character_position
     target = animation.layout.gimmick(key).work_position if key else animation.layout.character_home
     assert animation.scene.walk_frame == 0
@@ -282,7 +283,7 @@ def test_walk_moves_at_constant_speed_then_starts_work(phase, key, start_ms) -> 
     assert arrived.character_state != "walk"
     assert 0 <= arrived.action_progress < 0.006
     states = {item.placement.key: item.state for item in arrived.gimmicks}
-    expected = {"read": ("book", "turning"), "collect": ("basket", "taking"), "mix": ("cauldron", "cauldron_receive"), "place": ("product", "placing")}
+    expected = {"read": ("book", "turning"), "collect": ("basket", "taking"), "mix": ("cauldron", "cauldron_idle"), "place": ("product", "placing")}
     if phase in expected:
         item, value = expected[phase]
         assert states[item] == value
@@ -294,7 +295,7 @@ def test_walk_stride_uses_distance_and_is_independent_of_timer_chunking() -> Non
     for animation in animations:
         animation.observe(base)
         animation.observe(replace(base, materials={"seed": 1}))
-        animation.advance(5300)  # 最長の釜への道で8コマと次周期を検査。
+        animation.advance(animation.phase_start_ms("mix"))
     frames = []
     for _ in range(9):
         frames.append(animations[0].scene.walk_frame)
@@ -324,3 +325,89 @@ def test_mid_walk_freezes_pose_and_position_and_resumes_without_restart(freeze) 
     animation.observe(replace(delivered, world_time=0))
     assert animation.scene.walk_frame is None
     assert animation.scene.character_position == animation.layout.character_home
+
+
+@pytest.mark.parametrize("count", range(1, 7))
+def test_hand_objects_transfer_once_at_contacts_for_each_batch_size(count) -> None:
+    animation = LabAnimation()
+    base = _snapshot()
+    materials = dict.fromkeys(("seed", "water", "soil", "sand", "mineral", "food")[:count], 1)
+    delivered = replace(base, materials=materials, world_time=2)
+    animation.observe(base)
+    animation.observe(delivered)
+    animation.observe(delivered)
+    seen = {"materials": ["basket"], "mixing_vial": ["basket"], "product_vial": ["cauldron"]}
+    points = sorted({0, CYCLE_MS, *(offset + delta for _, offset in animation.transfer_schedule() for delta in (-1, 0, 1))})
+    previous = 0
+    for elapsed in points:
+        animation.advance(elapsed - previous)
+        previous = elapsed
+        scene = animation.scene
+        assert scene.batch_materials == tuple(sorted(materials))
+        vessel = [item for item in scene.objects if item.physical_vessel_id]
+        assert len(vessel) == 1
+        assert vessel[0].owner == scene.vessel_location
+        for item in scene.objects:
+            kind = item.object_id.split(":")[0]
+            if item.owner != seen[kind][-1]:
+                seen[kind].append(item.owner)
+    assert seen == {"materials": ["basket", "hand", "cauldron"], "mixing_vial": ["basket", "hand", "converted"], "product_vial": ["cauldron", "hand", "tray"]}
+    assert [(event.cycle_id, event.kind) for event in animation.scene.transfers] == [(1, kind) for kind in ("collect", "pour", "recover", "place")]
+    assert delivered.materials == materials  # 表示からWorldの在庫を変更しない。
+
+
+@pytest.mark.parametrize("freeze", [{"paused": True}, {"world_visible": False}, {"running": False}])
+@pytest.mark.parametrize("phase", ("read", "collect", "mix", "place"))
+def test_every_hand_frame_freezes_and_resumes_without_losing_ownership(phase, freeze) -> None:
+    animation = LabAnimation()
+    base = _snapshot()
+    delivered = replace(base, materials={"water": 1}, world_time=2)
+    animation.observe(base)
+    animation.observe(delivered)
+    start = animation.action_start_ms(phase)
+    for index in range(len(motion_clip(phase).frames)):
+        time = start + motion_clip(phase).frame_start(index)
+        animation.advance(time - animation.elapsed_ms)
+        before = animation.scene
+        assert before.action_frame == index
+        animation.observe(replace(delivered, **freeze))
+        animation.advance(5000)
+        assert animation.scene == before
+        animation.observe(delivered)
+        animation.observe(delivered)
+        assert animation.scene == before
+
+
+@pytest.mark.parametrize("checkpoint", (0, 6267, 12000, CYCLE_MS, CYCLE_MS + 7000, CYCLE_MS * 2 + 500))
+def test_batched_clock_preserves_queued_cycle_and_all_transfers(checkpoint) -> None:
+    results = []
+    for step in (30, 75, 100000):
+        animation = LabAnimation()
+        base = _snapshot()
+        first = replace(base, materials={"seed": 1}, world_time=2)
+        pending = replace(first, materials={"seed": 2, "water": 1}, world_time=3)
+        animation.observe(base)
+        animation.observe(first)
+        animation.observe(pending)
+        animation.observe(pending)
+        while animation.elapsed_ms < checkpoint:
+            animation.advance(min(step, checkpoint - animation.elapsed_ms))
+        results.append(animation.scene)
+    assert results[0] == results[1] == results[2]
+    if checkpoint >= CYCLE_MS * 2:
+        assert len(results[0].transfers) == 8
+        assert results[0].tray_product_id == 2
+
+
+def test_session_reset_clears_objects_and_transfer_history() -> None:
+    animation = LabAnimation()
+    base = _snapshot()
+    delivered = replace(base, materials={"seed": 1}, world_time=2)
+    animation.observe(base)
+    animation.observe(delivered)
+    animation.advance(CYCLE_MS)
+    assert animation.scene.objects
+    animation.observe(replace(delivered, seed=2))
+    assert animation.scene.objects == ()
+    assert animation.scene.transfers == ()
+    assert animation.scene.tray_product_id is None
