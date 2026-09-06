@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "miniatured-world"
-version = "0.9.4"
+version = "0.9.5"
 description = "抽象化されたPC活動で素材が届く、プライバシー優先のデスクトップ実験マスコット。"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -31,9 +31,12 @@ miniatured_world = [
   "assets/little_laboratory_background.jpg",
   "assets/little_laboratory_background.png",
   "assets/sprites_manifest.json",
+  "assets/hand_motion.json",
   "assets/characters/alchemist_girl/*.png",
   "assets/cauldron/magic_cauldron/*.png",
   "assets/props/*.png",
+  "assets/hands/*.png",
+  "assets/held/*.png",
 ]
 
 [tool.pytest.ini_options]

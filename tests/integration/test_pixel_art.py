@@ -25,7 +25,7 @@ def test_all_foreground_assets_share_palette_and_binary_alpha() -> None:
     manifest = json.loads((root / "sprites_manifest.json").read_text())
     palette = {tuple(color) for color in manifest["palette"]}
     assert len(palette) <= 64
-    assert len(manifest["files"]) == 48
+    assert len(manifest["files"]) == 180  # 基礎48 + 原画/手マスク/運搬/容器132
     for record in manifest["files"]:
         data = (root / record["path"]).read_bytes()
         assert hashlib.sha256(data).hexdigest() == record["sha256"]

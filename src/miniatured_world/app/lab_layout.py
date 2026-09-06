@@ -19,10 +19,10 @@ class LabLayout:
     @property
     def gimmicks(self) -> tuple[GimmickPlacement, ...]:
         return (
-            GimmickPlacement("cauldron", (510, 730), (96 * self.pixel_scale, 112 * self.pixel_scale), (672, 684)),
-            GimmickPlacement("book", (848, 692), (48 * self.pixel_scale, 68 * self.pixel_scale), (724, 696)),
-            GimmickPlacement("basket", (660, 766), (52 * self.pixel_scale, 28 * self.pixel_scale), (728, 726)),
-            GimmickPlacement("product", (788, 758), (48 * self.pixel_scale, 16 * self.pixel_scale), (734, 706)),
+            GimmickPlacement("cauldron", (510, 730), (96 * self.pixel_scale, 112 * self.pixel_scale), (630, 690)),
+            GimmickPlacement("book", (848, 692), (48 * self.pixel_scale, 68 * self.pixel_scale), (770, 686)),
+            GimmickPlacement("basket", (660, 766), (52 * self.pixel_scale, 28 * self.pixel_scale), (714, 744)),
+            GimmickPlacement("product", (788, 758), (48 * self.pixel_scale, 16 * self.pixel_scale), (734, 726)),
         )
 
     def gimmick(self, key: str) -> GimmickPlacement:

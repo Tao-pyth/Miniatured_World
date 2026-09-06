@@ -5,6 +5,7 @@ import math
 
 from miniatured_world.app.snapshot import WorldSnapshot
 from miniatured_world.app.lab_layout import DEFAULT_LAYOUT, GimmickPlacement, LabLayout
+from miniatured_world.app.hand_motion import ObjectOwnership, TransferEvent, handling_state, motion_clip
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,11 +14,26 @@ class GimmickState:
     state: str
 
 
-WORKFLOW = (("arrive", 1500), ("read", 2200), ("collect", 1600), ("mix", 3200), ("place", 1800), ("return", 700))
-CYCLE_MS = sum(duration for _, duration in WORKFLOW)
 WALK_SPEED = 80.0  # 舞台ピクセル/秒。画面の拡縮率には依存しない。
 WALK_STRIDE = 48.0  # 左右の足が一巡する移動距離。
 WALK_FRAMES = 8
+WORK_KEYS = {"arrive": None, "read": "book", "collect": "basket", "mix": "cauldron", "place": "product", "return": None}
+
+
+def workflow_for(layout: LabLayout) -> tuple[tuple[str, int], ...]:
+    previous = layout.character_home
+    result = []
+    for phase, key in WORK_KEYS.items():
+        target = layout.character_home if key is None else layout.gimmick(key).work_position
+        travel_ms = math.ceil(math.dist(previous, target) / WALK_SPEED * 1000)
+        action_ms = 1500 if phase == "arrive" else 100 if phase == "return" else motion_clip(phase).duration_ms
+        result.append((phase, travel_ms + action_ms))
+        previous = target
+    return tuple(result)
+
+
+WORKFLOW = workflow_for(DEFAULT_LAYOUT)
+CYCLE_MS = sum(duration for _, duration in WORKFLOW)
 
 
 def material_transfer_progress(phase: str, progress: float, index: int, count: int) -> float:
@@ -47,6 +63,15 @@ class LabScene:
     facing_right: bool = False
     batch_materials: tuple[str, ...] = ()
     product_visible: bool = False
+    action_frame: int | None = None
+    action_elapsed_ms: float = 0
+    cycle_id: int = 0
+    objects: tuple[ObjectOwnership, ...] = ()
+    vessel_location: str = "none"
+    vessel_contents: str = "empty"
+    vessel_angle: float = 0
+    tray_product_id: int | None = None
+    transfers: tuple[TransferEvent, ...] = ()
 
 
 def derive_lab_scene(snapshot: WorldSnapshot, *, reaction: bool = False) -> LabScene:
@@ -79,17 +104,51 @@ def derive_lab_scene(snapshot: WorldSnapshot, *, reaction: bool = False) -> LabS
 
 
 class LabAnimation:
-    """Transient view state; never advances simulation or retains raw activity."""
+    """表示だけを進める時計。受け渡し時刻も描画も同じ経過時間から決まる。"""
 
     def __init__(self, layout: LabLayout = DEFAULT_LAYOUT) -> None:
         self.layout = layout
+        self.workflow = workflow_for(layout)
+        self.cycle_ms = sum(duration for _, duration in self.workflow)
         self.elapsed_ms = 0
         self._snapshot: WorldSnapshot | None = None
         self._reaction_until = 0
         self._cycle_start: int | None = None
+        self._cycle_id = 0
         self._pending_materials: tuple[str, ...] = ()
         self._batch_materials: tuple[str, ...] = ()
-        self._product_visible = False
+        self._tray_cycle_id: int | None = None
+        self._recorded_transfers: set[str] = set()
+        self._transfers: list[TransferEvent] = []
+
+    def phase_start_ms(self, phase: str) -> int:
+        start = 0
+        for name, duration in self.workflow:
+            if name == phase:
+                return start
+            start += duration
+        raise ValueError(phase)
+
+    def action_start_ms(self, phase: str) -> int:
+        duration = dict(self.workflow)[phase]
+        return self.phase_start_ms(phase) + duration - motion_clip(phase).duration_ms
+
+    def transfer_schedule(self) -> tuple[tuple[str, int], ...]:
+        return tuple(
+            (kind, self.action_start_ms(phase) + motion_clip(phase).event_time(event))
+            for kind, phase, event in (
+                ("collect", "collect", "grab"),
+                ("pour", "mix", "pour_end"),
+                ("recover", "mix", "recover"),
+                ("place", "place", "release"),
+            )
+        )
+
+    def _start_cycle(self, start_ms: int, materials: tuple[str, ...]) -> None:
+        self._cycle_start = start_ms
+        self._cycle_id += 1
+        self._batch_materials = materials
+        self._recorded_transfers.clear()
 
     def observe(self, snapshot: WorldSnapshot) -> None:
         previous = self._snapshot
@@ -97,37 +156,46 @@ class LabAnimation:
             self.elapsed_ms = 0
             self._reaction_until = 0
             self._cycle_start = None
+            self._cycle_id = 0
             self._pending_materials = ()
             self._batch_materials = ()
-            self._product_visible = False
+            self._tray_cycle_id = None
+            self._recorded_transfers.clear()
+            self._transfers.clear()
         elif snapshot.running and not snapshot.paused:
-            new_event = set(snapshot.events) - set(previous.events)
-            new_discovery = set(snapshot.discoveries) - set(previous.discoveries)
-            if new_event or new_discovery:
+            if set(snapshot.events) - set(previous.events) or set(snapshot.discoveries) - set(previous.discoveries):
                 self._reaction_until = self.elapsed_ms + 3200
             arrived = tuple(sorted(key for key, value in snapshot.materials.items() if value > previous.materials.get(key, 0)))[:6]
             if arrived and snapshot.activity_collection_enabled:
                 if self._cycle_start is None:
-                    self._cycle_start = self.elapsed_ms
-                    self._batch_materials = arrived
+                    self._start_cycle(self.elapsed_ms, arrived)
                 else:
-                    # 高頻度の活動通知でも先頭へ戻さず、次回分を最大1回にまとめる。
                     self._pending_materials = tuple(sorted(set(self._pending_materials) | set(arrived)))[:6]
         self._snapshot = snapshot
 
     def advance(self, elapsed_ms: int) -> None:
         snapshot = self._snapshot
-        if snapshot is not None and snapshot.running and not snapshot.paused and snapshot.world_visible:
-            self.elapsed_ms += max(0, elapsed_ms)
-            if self._cycle_start is not None and self.elapsed_ms - self._cycle_start >= CYCLE_MS - 700:
-                self._product_visible = True
-            if self._cycle_start is not None and self.elapsed_ms - self._cycle_start >= CYCLE_MS:
-                self._product_visible = True
-                self._cycle_start = None
-                if self._pending_materials:
-                    self._cycle_start = self.elapsed_ms
-                    self._batch_materials = self._pending_materials
-                    self._pending_materials = ()
+        if snapshot is None or not snapshot.running or snapshot.paused or not snapshot.world_visible:
+            return
+        self.elapsed_ms += max(0, elapsed_ms)
+        while self._cycle_start is not None:
+            end = self._cycle_start + self.cycle_ms
+            reached = min(self.elapsed_ms, end)
+            for kind, offset in self.transfer_schedule():
+                when = self._cycle_start + offset
+                if when <= reached and kind not in self._recorded_transfers:
+                    self._recorded_transfers.add(kind)
+                    self._transfers.append(TransferEvent(self._cycle_id, kind, when))
+                    self._transfers = self._transfers[-16:]
+                    if kind == "place":
+                        self._tray_cycle_id = self._cycle_id
+            if self.elapsed_ms < end:
+                break
+            self._cycle_start = None
+            if self._pending_materials:
+                # 通知を受けた時刻へずらさず、前巡の終端から余り時間を進める。
+                materials, self._pending_materials = self._pending_materials, ()
+                self._start_cycle(end, materials)
 
     @property
     def frame_index(self) -> int:
@@ -138,47 +206,63 @@ class LabAnimation:
         if self._snapshot is None:
             return None
         base = derive_lab_scene(self._snapshot, reaction=self.elapsed_ms < self._reaction_until)
-        phase, progress, action_progress = "idle", 0.0, 0.0
-        walk_frame = None
-        states = {"book": "open", "basket": "empty", "cauldron": base.cauldron_state, "product": "ready" if self._product_visible else "empty"}
+        phase, progress, action_progress, action_elapsed = "idle", 0.0, 0.0, 0.0
+        walk_frame = action_frame = None
+        states = {"book": "open", "basket": "empty", "cauldron": base.cauldron_state, "product": "ready" if self._tray_cycle_id else "empty"}
         position = self.layout.character_home
         facing_right = False
-        if self._cycle_start is not None and self._snapshot.running:
+        if self._cycle_start is not None:
             elapsed = self.elapsed_ms - self._cycle_start
             previous_position = self.layout.character_home
-            work_keys = {"arrive": None, "read": "book", "collect": "basket", "mix": "cauldron", "place": "product", "return": None}
-            for name, duration in WORKFLOW:
-                target_key = work_keys[name]
-                target = self.layout.character_home if target_key is None else self.layout.gimmick(target_key).work_position
+            for name, duration in self.workflow:
+                key = WORK_KEYS[name]
+                target = self.layout.character_home if key is None else self.layout.gimmick(key).work_position
                 if elapsed < duration:
                     phase, progress = name, elapsed / duration
                     distance = math.dist(previous_position, target)
-                    travel_ms = distance / WALK_SPEED * 1000
+                    travel_ms = math.ceil(distance / WALK_SPEED * 1000)
                     travelled = min(distance, elapsed / 1000 * WALK_SPEED)
                     blend = travelled / distance if distance else 1.0
                     position = tuple(a + (b - a) * blend for a, b in zip(previous_position, target))
-                    if travelled < distance:
+                    if elapsed < travel_ms:
                         walk_frame = int(travelled / WALK_STRIDE * WALK_FRAMES) % WALK_FRAMES
                         facing_right = target[0] > previous_position[0]
                     else:
-                        action_progress = min(1.0, max(0.0, (elapsed - travel_ms) / max(1.0, duration - travel_ms)))
+                        action_elapsed = elapsed - travel_ms
+                        action_progress = min(1.0, action_elapsed / max(1, duration - travel_ms))
+                        if name in {"read", "collect", "mix", "place"}:
+                            action_frame = motion_clip(name).frame_at(action_elapsed)
+                        facing_right = name in {"read", "place"}
                     break
                 elapsed -= duration
                 previous_position = target
-            captions = {"arrive": "素材かごに新しい素材が届きました", "read": "本をめくって手順を確認しています", "collect": "かごから素材を取り出しています", "mix": "素材を釜で調合しています", "place": "完成した小瓶をトレーへ置いています", "return": "次の素材を待っています"}
+
             walking = walk_frame is not None
             states["basket"] = "arriving" if phase == "arrive" else "taking" if phase == "collect" and not walking else "full" if phase in {"read", "collect"} else "empty"
             states["book"] = "turning" if phase == "read" and not walking else "open"
             states["product"] = "placing" if phase == "place" and not walking else states["product"]
-            states["cauldron"] = "cauldron_receive" if phase in {"collect", "mix"} and not walking else "cauldron_success" if phase == "place" and not walking else "cauldron_idle"
+            states["cauldron"] = "cauldron_idle"
+            if phase == "mix" and action_frame is not None and action_frame >= motion_clip("mix").event_frame("pour_start"):
+                states["cauldron"] = "cauldron_success" if action_frame >= motion_clip("mix").event_frame("recover") else "cauldron_receive"
+            elif phase == "place" and not walking:
+                states["cauldron"] = "cauldron_success"
             if walking:
                 destinations = {"read": "本", "collect": "素材かご", "mix": "釜", "place": "トレー", "return": "待機位置"}
-                # 一時停止時も歩行中の姿勢を保つ。時間はadvance側で凍結する。
                 base = replace(base, character_state="walk", cauldron_state=states["cauldron"], effects=(), caption=f"{destinations[phase]}へ歩いています")
-            elif not self._snapshot.paused:
-                facing_right = phase in {"read", "place"}
-                base = replace(base, character_state="success" if phase == "place" else "work" if phase == "mix" else "idle", cauldron_state=states["cauldron"], effects=("reaction_light",) if phase in {"mix", "place"} else (), caption=captions[phase])
             else:
-                facing_right = phase in {"read", "place"}
-                states["cauldron"] = base.cauldron_state
-        return replace(base, workflow_phase=phase, phase_progress=progress, action_progress=action_progress, walk_frame=walk_frame, gimmicks=tuple(GimmickState(item, states[item.key]) for item in self.layout.gimmicks), character_position=position, facing_right=facing_right, batch_materials=self._batch_materials, product_visible=self._product_visible)
+                captions = {"arrive": "素材かごに新しい素材が届きました", "read": "本をめくって手順を確認しています", "collect": "かごから素材を取り出しています", "mix": "素材を釜で調合しています", "place": "完成した小瓶をトレーへ置いています", "return": "次の素材を待っています"}
+                effects = ("reaction_light",) if states["cauldron"] in {"cauldron_receive", "cauldron_success"} else ()
+                # 一時停止中も同じ原画・所有状態を返す。時計はadvanceで凍結する。
+                base = replace(base, character_state="work" if phase == "mix" else "idle", cauldron_state=states["cauldron"], effects=effects, caption=captions[phase])
+
+        handling = handling_state(phase, action_frame, self._cycle_id)
+        return replace(
+            base, workflow_phase=phase, phase_progress=progress, action_progress=action_progress,
+            walk_frame=walk_frame, action_frame=action_frame, action_elapsed_ms=action_elapsed,
+            gimmicks=tuple(GimmickState(item, states[item.key]) for item in self.layout.gimmicks),
+            character_position=position, facing_right=facing_right, batch_materials=self._batch_materials,
+            product_visible=self._tray_cycle_id is not None, cycle_id=self._cycle_id,
+            objects=handling.objects, vessel_location=handling.vessel_location,
+            vessel_contents=handling.contents, vessel_angle=handling.angle,
+            tray_product_id=self._tray_cycle_id, transfers=tuple(self._transfers),
+        )

@@ -163,11 +163,11 @@ def test_walk_frames_are_loaded_and_rendered_in_both_directions_at_three_sizes()
         assert all(f"walk_{index:02}" in preview._character_sprites for index in range(1, 9))
         for size in ((640, 427), (1280, 720), (900, 620)):
             preview.resize(*size)
-            for start_ms, right in ((5300, False), (8500, True)):
+            for phase, right in (("mix", False), ("place", True)):
                 preview.set_snapshot(replace(base, seed=18))
                 preview.set_snapshot(base)
                 preview.set_snapshot(replace(base, materials={"water": 1}))
-                preview.animation.advance(start_ms)
+                preview.animation.advance(preview.animation.phase_start_ms(phase))
                 rendered = set()
                 for frame in range(8):
                     assert preview.animation.scene.walk_frame == frame

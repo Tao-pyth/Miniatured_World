@@ -1,5 +1,5 @@
 {
-  "version": "0.9.4",
+  "version": "0.9.5",
   "pixel_scale": 2,
   "character_canvas": [
     128,
@@ -340,7 +340,18 @@
     "lectern.png": "5d4440ea7dbbaa096552d2000ac49ce69c1c81a090e8a6d0ac64d59749951531",
     "tray.png": "a610088e6593ade1811f5b0c9a90f35cdd9271f99f030dbb9a52df2b117f4427",
     "work-pose.png": "dfd476ab69a8a41eaa1e7934b2cc1be00fd20d20d7d58f240161940d5d736827",
-    "walking-v0.9.4/walk-sheet.png": "1b6d765b161e192ade88d1211aeb726c495a648da944b9236e804abbd2b3c66d"
+    "walking-v0.9.4/walk-sheet.png": "1b6d765b161e192ade88d1211aeb726c495a648da944b9236e804abbd2b3c66d",
+    "hand-motion-v0.9.5/collect-lower.png": "2e67e9da57513fb171286bf470d52a41449129e5dc9eeb4a2f700f34a7a67b7f",
+    "hand-motion-v0.9.5/collect-revision-sheet.png": "cf6f80ea6e78ae19b67437b07fa0f0bda4aca630329f5b456d017e4955b6fca5",
+    "hand-motion-v0.9.5/collect-rise.png": "0cbca631e6241d0a10c5a6a9316c486ba789689ebfb0a9b40d61070e675c5748",
+    "hand-motion-v0.9.5/collect-sheet.png": "7ac88884b958712eb050d87280ccc471dc275950ce881f00a84d4103b3d302bd",
+    "hand-motion-v0.9.5/contacts.png": "03e414c7ff84c3e4e2f1ceb9c403ddb1557ad52307d60be629495011887e5e84",
+    "hand-motion-v0.9.5/mix-reach-sheet.png": "5c46886dcf2cf8c0676cbbdb7dee8eed36aaf555a65a1482ca2bd6b0a2dbabe0",
+    "hand-motion-v0.9.5/mix-sheet.png": "5a8fe91f523c7621afc60893cfccc616050a76291567facf1ce1d731c4b9bc16",
+    "hand-motion-v0.9.5/place-sheet.png": "6df915d9b7e78d5e1121703569a539f2a59fd75af9252fb05be5aeefb99f931e",
+    "hand-motion-v0.9.5/read-sheet.png": "9096b3c8fd871cb2a037fd4bf7019d58db4f6593aba4db8ef99d44f3c8f388f6",
+    "hand-motion-v0.9.5/vials.png": "cdc5ac6f42a99a07feac1ce7d155ebeed0c302a72b8a2ca1033ccd9b78e40706",
+    "hand-motion-v0.9.5/walk-empty-sheet.png": "e1fa59d75973ae41d7908b0cd32c9631f4dc86ac636392f0bd0852659e4140e1"
   },
   "files": [
     {
@@ -726,6 +737,1062 @@
         128
       ],
       "sha256": "950992698066dffe6f9018c514eb36eb16ac913889ff47825ccbb0d2cd525cc3"
+    },
+    {
+      "path": "characters/alchemist_girl/read_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "c3cabe7e621571df554fded0be8cfaaf68ae0568b222eb3aabb2e6b9df169837"
+    },
+    {
+      "path": "hands/read_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "6d06e000e157964801f07a7005f153f53acf58120acab70e63d201561dc8e0a9"
+    },
+    {
+      "path": "characters/alchemist_girl/read_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "b67f2c299d23b0a9f449366c7911e1f2464beef86731b2302e05912687d64faa"
+    },
+    {
+      "path": "hands/read_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "cc5c4debe162b53c9f43b6f5c8e76ce99af498373497a4c577f4907599e0cb08"
+    },
+    {
+      "path": "characters/alchemist_girl/read_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "30c7d297e819a62d7f38b0e2e7300a453245e3c5d108bf09786969be538eeea1"
+    },
+    {
+      "path": "hands/read_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "7f4d35590af50afd96073ad742195924bbb98a99f93bcc16cfdb73dce9560bb2"
+    },
+    {
+      "path": "characters/alchemist_girl/read_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "bfca48c114a1c6df02ca8d1dd8792038b8b3a95160ae2e6c481dff79f7600ca1"
+    },
+    {
+      "path": "hands/read_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "4b43fe763577788b4547445b7986ffec50dc177507aff1c4eac9418bf7b2f150"
+    },
+    {
+      "path": "characters/alchemist_girl/read_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "2cbb1be0ac6e4da2062da2660ff20a72b7fb4f632214cb2820d9878f16fd4559"
+    },
+    {
+      "path": "hands/read_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "af59ec7dce241aae72e414040399067525e04eb7fe47a9142e69b642a99e477e"
+    },
+    {
+      "path": "characters/alchemist_girl/read_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "e1aeec593f9d031b336349167cccbb1125dbdd340d02cee8731fdab0973628ab"
+    },
+    {
+      "path": "hands/read_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "cfc0d7cef7415a040cd2f9e74c1c5592b8e701cc230b32878324e0c4bef66493"
+    },
+    {
+      "path": "characters/alchemist_girl/read_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "3e61c20f696a0fe1d97ed78fa7f02ebb7e832d1732f26b2234d91327272a098d"
+    },
+    {
+      "path": "hands/read_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "d97da4f3d97ba5b27d88b117b97ec49c80c4616f66a072daaccc0be6a027fddb"
+    },
+    {
+      "path": "characters/alchemist_girl/read_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "169104da5416df938049f97fe2e823d02e390cabf908edd9e4ef515d15e29776"
+    },
+    {
+      "path": "hands/read_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "da8cb6972cc2c01e25b2f1fcd372a8271538c1fb333627659a72cbac4a6fa20c"
+    },
+    {
+      "path": "characters/alchemist_girl/read_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "eaf2048065e5393e4be09275db3258c59f482d87ba72f96fa5f3e197f1c8c1ee"
+    },
+    {
+      "path": "hands/read_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "7ac1f03d1ea288a18e5e47921fe85109ad4f398a9051ffd5506bae36a77cce83"
+    },
+    {
+      "path": "characters/alchemist_girl/read_10.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "791ca324672207dc7a9151d617a5b7cf131ff19bba2cb80df3cc1b833adea034"
+    },
+    {
+      "path": "hands/read_10.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "8110da5fdc694ef280e25b90fddbdf93e67f88f6a173cbcbf898d6e59be75619"
+    },
+    {
+      "path": "characters/alchemist_girl/read_11.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "b67f2c299d23b0a9f449366c7911e1f2464beef86731b2302e05912687d64faa"
+    },
+    {
+      "path": "hands/read_11.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "cc5c4debe162b53c9f43b6f5c8e76ce99af498373497a4c577f4907599e0cb08"
+    },
+    {
+      "path": "characters/alchemist_girl/read_12.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "aa0593af4685a5d61aebb35b9ec6038cc48c683f1c37b285be4f540d301c1137"
+    },
+    {
+      "path": "hands/read_12.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "2b03f069ce5cf20a85bb55b5be19cdf0d186e7ca30bd5d87550a919001a81b1b"
+    },
+    {
+      "path": "characters/alchemist_girl/read_13.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1b752ac433786ab37159cc56736f8757d07a2e9f262d6b20fbad57f418788650"
+    },
+    {
+      "path": "hands/read_13.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "4485b1923b0db653a79352cf31bd17be6aa2754e365ea88f0429be5315b582a0"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "22b2250cb6047de424692f853893a93230e5bbda1d886b33aecfeb68455ba8a5"
+    },
+    {
+      "path": "hands/collect_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "c559aac2838536c34de58a729abc3c9d609aaf71887ee9e2ef130bbec3936b11"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "8a62582d74749224ae9c954d29a02815a6b6b5a1b2de101fb6e4ba1f227ac2b6"
+    },
+    {
+      "path": "hands/collect_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "32f5a0343d30af4eca252f337eec5c4fe0ba00ba71c9313adf93d1414ef877bb"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1f08a3284bcd26055f232db0bc96879865ab27f4dfbbfd360aa5914aaa1505e0"
+    },
+    {
+      "path": "hands/collect_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "78402d826610f205de00707b08bf85f0901d2928cffd3faa0dffc5f00e528aae"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "e88e81ff35e16eb8b2c334bbbfe036c93ad8e078cfadf544d30fbc3987450e0b"
+    },
+    {
+      "path": "hands/collect_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "f41d039f0496327dc9c66dd61d970db1230f9b4ec4de65408cf08cd3087c6212"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "9f63a67bcc0fafedb4d2bc76e951b283496c60ba0f02ba22681cd8c56b449427"
+    },
+    {
+      "path": "hands/collect_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "716eaa5166fe59cb0183b3ddc74b50223e1f3a17be1f91ce966bece456a36f4f"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "99c0628eb63cfd75e06e18a63099b238df445c15cef6042144c9ff9e5cbd27aa"
+    },
+    {
+      "path": "hands/collect_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "309c5d9d4a0ed4dea172b5993f32cb6da8b480863c81af85cf4698a413b293d1"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "3f0ea3a5490a82237d7507dcb0172a692859e0de821aa089d9ce8529a9c42493"
+    },
+    {
+      "path": "hands/collect_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "a21b1e4a9345ca0a683bd489f1e50e074382f7a71e353f31bba933f3a2ed69c8"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "85059baec045490ecdd3bd0a07023b416ead85829b105916bb289204ccb1e64f"
+    },
+    {
+      "path": "hands/collect_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1fe4f0726ee604d6107f4325a692d10626a97538aaa5ebc2a098efdc8db4519d"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "92f1d2c556b7463ffed8049efe0cd9e4e4e494c33590a76dba5aaf803de0a380"
+    },
+    {
+      "path": "hands/collect_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "4ee14cdf8fcda3a962ef8f0874dd3cddc4c52b325b72bc4f1748be3eefb9467b"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_10.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "9fc6f4815fb51d33e3f368a0b76ddb584ff617e302e86627ffbb7f9be3305032"
+    },
+    {
+      "path": "hands/collect_10.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "a429f8741c716ae702b895f8e4799ef6e430fbdf8d08946b08a60677491bded9"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_11.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "588be004260b4139f1e0b28607592c350e650b9843b2f163b51b87aa264f2ce1"
+    },
+    {
+      "path": "hands/collect_11.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "23631ca5314df60ed271014a2d3fca7ac39fbd73649dffa35ee9596632187b28"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_12.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1dd40b41da8dcbf1b528b493b426174d8d6c368ce87fc8390f374db4943e25c3"
+    },
+    {
+      "path": "hands/collect_12.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "d84825321200411e706049487498b686e5e1dbfe23f8f9c9e87d2adcd1349c07"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_13.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "044db6fe7987ef30ec455e8a5d0b2b2a7254dd9eaab40bd031d8c707fff25159"
+    },
+    {
+      "path": "hands/collect_13.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "fd7d26403bcef4a996c6938c329bff6c5a382ed0b69506a261c0c3d46faef81a"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_14.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "0e9c644400a6e7046c2d51b1853f21a455da7d18e98f457d21ef74474a86f6f6"
+    },
+    {
+      "path": "hands/collect_14.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "0ba3df0fe9ae87596d32695e3e478c71255c36c0c8329d398992593858390ad4"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_15.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "2e95d5fafb0569eaea577d1bca7b8bd6980316a1fb687773db157937837b7130"
+    },
+    {
+      "path": "hands/collect_15.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1accc34afb280970213a237c8ef3ea2674e2380951346765f10405afbf771a0f"
+    },
+    {
+      "path": "characters/alchemist_girl/collect_16.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "18d3cf80b20773685626f59d12dc128e93ffae4cc3b38e1ab70c011e68fd6cfd"
+    },
+    {
+      "path": "hands/collect_16.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1f1c6090a5fd9ae86134e62b1a69e92f668513bc7946eb9005a1a107899437f0"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "142b4823e645b9c0a2c230d1b075af350df20d1c989f45e7183a7f5c87a494ff"
+    },
+    {
+      "path": "hands/mix_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "56bd914be716fb38e660b9bd833f52c3fce5c9a258defc77c73291a42d82117c"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "2a1342e5b479b0f29d08f61e6292031b886ea2f7abd009489e588540308907aa"
+    },
+    {
+      "path": "hands/mix_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "8e872727f14ea37a51c2537c8afd3bc08d74574e43f78098eb89cde464a0b1be"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "26e307338de91d112ea470cde0afeb26c7365e6801773e6a28a6d59d7a2c1fca"
+    },
+    {
+      "path": "hands/mix_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "df2d9b5ea1094c75448a839ce12c2dc3e08f340efbcdb3b9b3fb9ca5fb26cb5a"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "453158e5cf31f58c062e77f14ad2c6b1fbc42447774b2c8948661d32ae886104"
+    },
+    {
+      "path": "hands/mix_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "ada18401dae9b7462e489c252c3780a4ddf7fae6a959c52b198907bc472bf636"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "3d731dc77e18e7bcb8c675fdb63746a5341091dee5b0412227420a204001a9b9"
+    },
+    {
+      "path": "hands/mix_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "0a9956da4dc70c1284e09d7d93a0715898999e441c7d11dcc919e4e25882bdde"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "0913d1da0b1d9a19e0c25d6a77c53be78e2b03f07ecd58ecaf9e6e1838a2b553"
+    },
+    {
+      "path": "hands/mix_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "28544d905b6f55f6f4bcc3eb9053d84cb123b6e7aee340de2b50d17f55fe032c"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "21be258eba3ca2a722bd15e179701076d19a01ba3c820c552a53932ac369cab4"
+    },
+    {
+      "path": "hands/mix_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "776528f1a8b75debb8b0c11b4aa7da9b0c5d9b7c189eb0b0996aac01cd2b9898"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "6f4dd02783e4adcc31227c6eb8c8814e0225c03cc368f9bbfe6516117b53c16b"
+    },
+    {
+      "path": "hands/mix_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "c840a8627dc728168cd4b9f6756912df897c25749712c2ead21597715b1a9356"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "27b7331136cae8e664a0704a86ecfed81aea92834eb35908e4601ea9d3d2ec22"
+    },
+    {
+      "path": "hands/mix_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "c04cbb18abf31aa06f79ea47c407369c61e7d45c1bf6fdc3e244d7ad8a3d3ba2"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_10.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "9a22c35afd7d7c266dd5f970014ba097570820e418f6571de88b509e1cd73c1a"
+    },
+    {
+      "path": "hands/mix_10.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "3eef85ce35f4b3020f069d5a65adb6a4300f45fa5eb899ef7a067e5d2ee49c9f"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_11.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "4509314829f1c49054c0d72f411dc12613de191fadb3583a598dc70b948c861b"
+    },
+    {
+      "path": "hands/mix_11.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "f671b33fb77bdda38a4cc98a28bede4674d6cb2dde9e4088d1d1082820ac4fb3"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_12.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "2e8b30e70bbffdee2f31e66037dc33c1b14be4e81990f0c2a5fb8ff06fdbc448"
+    },
+    {
+      "path": "hands/mix_12.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "fa7448104a64403c89b66a54356c121950421964770c33b8767fd3c45eb3008a"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_13.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "5b55df95a6b43abbafeb15bce996a270deeb202c18d962793c5d740dec8f35ac"
+    },
+    {
+      "path": "hands/mix_13.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "dd246a2fd9246dc733a904a0b74ccfb66b41179d31879150b18c1bd826824641"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_14.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "87738a969d0a88d6608f4373de2f7051ead55ab9f16f72f6db2f32d672abd11d"
+    },
+    {
+      "path": "hands/mix_14.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1a52c6373f10945a903db192342994a56738953808a7b875f6781db876f98aae"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_15.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "26e307338de91d112ea470cde0afeb26c7365e6801773e6a28a6d59d7a2c1fca"
+    },
+    {
+      "path": "hands/mix_15.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "df2d9b5ea1094c75448a839ce12c2dc3e08f340efbcdb3b9b3fb9ca5fb26cb5a"
+    },
+    {
+      "path": "characters/alchemist_girl/mix_16.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "2a1342e5b479b0f29d08f61e6292031b886ea2f7abd009489e588540308907aa"
+    },
+    {
+      "path": "hands/mix_16.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "8e872727f14ea37a51c2537c8afd3bc08d74574e43f78098eb89cde464a0b1be"
+    },
+    {
+      "path": "characters/alchemist_girl/place_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "18d3cf80b20773685626f59d12dc128e93ffae4cc3b38e1ab70c011e68fd6cfd"
+    },
+    {
+      "path": "hands/place_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1f1c6090a5fd9ae86134e62b1a69e92f668513bc7946eb9005a1a107899437f0"
+    },
+    {
+      "path": "characters/alchemist_girl/place_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "2e95d5fafb0569eaea577d1bca7b8bd6980316a1fb687773db157937837b7130"
+    },
+    {
+      "path": "hands/place_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1accc34afb280970213a237c8ef3ea2674e2380951346765f10405afbf771a0f"
+    },
+    {
+      "path": "characters/alchemist_girl/place_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "ac334688feac8decab58f2224ebe94da233e57e2268fcd55d22436420e4e6141"
+    },
+    {
+      "path": "hands/place_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "9253a3e65ceac639b965a10e23b37399ad92ddf1d42e29043c1edb74330c4a51"
+    },
+    {
+      "path": "characters/alchemist_girl/place_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "044db6fe7987ef30ec455e8a5d0b2b2a7254dd9eaab40bd031d8c707fff25159"
+    },
+    {
+      "path": "hands/place_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "fd7d26403bcef4a996c6938c329bff6c5a382ed0b69506a261c0c3d46faef81a"
+    },
+    {
+      "path": "characters/alchemist_girl/place_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1dd40b41da8dcbf1b528b493b426174d8d6c368ce87fc8390f374db4943e25c3"
+    },
+    {
+      "path": "hands/place_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "d84825321200411e706049487498b686e5e1dbfe23f8f9c9e87d2adcd1349c07"
+    },
+    {
+      "path": "characters/alchemist_girl/place_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "588be004260b4139f1e0b28607592c350e650b9843b2f163b51b87aa264f2ce1"
+    },
+    {
+      "path": "hands/place_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "23631ca5314df60ed271014a2d3fca7ac39fbd73649dffa35ee9596632187b28"
+    },
+    {
+      "path": "characters/alchemist_girl/place_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "9fc6f4815fb51d33e3f368a0b76ddb584ff617e302e86627ffbb7f9be3305032"
+    },
+    {
+      "path": "hands/place_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "a429f8741c716ae702b895f8e4799ef6e430fbdf8d08946b08a60677491bded9"
+    },
+    {
+      "path": "characters/alchemist_girl/place_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "92f1d2c556b7463ffed8049efe0cd9e4e4e494c33590a76dba5aaf803de0a380"
+    },
+    {
+      "path": "hands/place_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "4ee14cdf8fcda3a962ef8f0874dd3cddc4c52b325b72bc4f1748be3eefb9467b"
+    },
+    {
+      "path": "characters/alchemist_girl/place_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "85059baec045490ecdd3bd0a07023b416ead85829b105916bb289204ccb1e64f"
+    },
+    {
+      "path": "hands/place_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1fe4f0726ee604d6107f4325a692d10626a97538aaa5ebc2a098efdc8db4519d"
+    },
+    {
+      "path": "characters/alchemist_girl/place_10.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "3f0ea3a5490a82237d7507dcb0172a692859e0de821aa089d9ce8529a9c42493"
+    },
+    {
+      "path": "hands/place_10.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "a21b1e4a9345ca0a683bd489f1e50e074382f7a71e353f31bba933f3a2ed69c8"
+    },
+    {
+      "path": "characters/alchemist_girl/place_11.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "99c0628eb63cfd75e06e18a63099b238df445c15cef6042144c9ff9e5cbd27aa"
+    },
+    {
+      "path": "hands/place_11.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "309c5d9d4a0ed4dea172b5993f32cb6da8b480863c81af85cf4698a413b293d1"
+    },
+    {
+      "path": "characters/alchemist_girl/place_12.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "9f63a67bcc0fafedb4d2bc76e951b283496c60ba0f02ba22681cd8c56b449427"
+    },
+    {
+      "path": "hands/place_12.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "716eaa5166fe59cb0183b3ddc74b50223e1f3a17be1f91ce966bece456a36f4f"
+    },
+    {
+      "path": "characters/alchemist_girl/place_13.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "6d1c634154b35cc5df93a45ef4fe1888f13a050a63c78e4efac1848ff5cc18c0"
+    },
+    {
+      "path": "hands/place_13.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "09c901fa0368054470abbc0c19451482c0f012a2b8a3bb2927ee66f19f3687ee"
+    },
+    {
+      "path": "characters/alchemist_girl/place_14.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "1f08a3284bcd26055f232db0bc96879865ab27f4dfbbfd360aa5914aaa1505e0"
+    },
+    {
+      "path": "hands/place_14.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "78402d826610f205de00707b08bf85f0901d2928cffd3faa0dffc5f00e528aae"
+    },
+    {
+      "path": "characters/alchemist_girl/place_15.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "8a62582d74749224ae9c954d29a02815a6b6b5a1b2de101fb6e4ba1f227ac2b6"
+    },
+    {
+      "path": "hands/place_15.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "32f5a0343d30af4eca252f337eec5c4fe0ba00ba71c9313adf93d1414ef877bb"
+    },
+    {
+      "path": "characters/alchemist_girl/place_16.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "22b2250cb6047de424692f853893a93230e5bbda1d886b33aecfeb68455ba8a5"
+    },
+    {
+      "path": "hands/place_16.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "c559aac2838536c34de58a729abc3c9d609aaf71887ee9e2ef130bbec3936b11"
+    },
+    {
+      "path": "characters/alchemist_girl/carry_walk_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "33f9040250646daeb878fceb245b3aa63f729c3d1fff45e62e813dcc44c70fd7"
+    },
+    {
+      "path": "characters/alchemist_girl/carry_walk_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "cc322ab6bd817ce542c3ab1220d9b821c0cccddce56bf9baf6501348c78c9cda"
+    },
+    {
+      "path": "characters/alchemist_girl/carry_walk_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "43857643ef1c0d623b24bc47d69d35b4b4f5a2d5f391f8a40f802234d0e83bf6"
+    },
+    {
+      "path": "characters/alchemist_girl/carry_walk_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "c4b30ce2af4d3c2cbec06ce6de68b14eae49b6d7be7896d5d7fe1b2d3a423587"
+    },
+    {
+      "path": "characters/alchemist_girl/carry_walk_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "13dbcb6aed39bb491ecc99ed6861426a2d3d9445fb63d715f8e0e3f5f5c0c7e1"
+    },
+    {
+      "path": "characters/alchemist_girl/carry_walk_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "b9392803da4d4e96064d60b12f4bd1e98a69830a385761e8f035c34002680781"
+    },
+    {
+      "path": "characters/alchemist_girl/carry_walk_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "4129012c7ee8fd1f405e2c6e32323f6612f79156539f3c4958464b004c38c0c5"
+    },
+    {
+      "path": "characters/alchemist_girl/carry_walk_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "ee66998fb0fc455572037de3427ab11eb57a309339fc01f5d1e060ade9f616d3"
+    },
+    {
+      "path": "held/vial_empty.png",
+      "size": [
+        24,
+        32
+      ],
+      "sha256": "a992516e99aa9597fc84d645673194818ab40ce52904291ad3debc1432dd8d4a"
+    },
+    {
+      "path": "held/vial_filled.png",
+      "size": [
+        24,
+        32
+      ],
+      "sha256": "22c0689b3155d6fe7b1eb68d3f60f43f981b8a8af6a7ba85969232f6d2e9ad9f"
     }
   ],
   "walking": {
@@ -734,5 +1801,15 @@
     "head_fixed_until_y": 72,
     "speed": 80,
     "stride": 48
+  },
+  "hand_motion": {
+    "metadata": "hand_motion.json",
+    "distinct_originals": 44,
+    "frames": {
+      "read": 13,
+      "collect": 16,
+      "mix": 16,
+      "place": 16
+    }
   }
 }
