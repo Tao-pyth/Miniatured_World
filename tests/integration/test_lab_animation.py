@@ -62,8 +62,8 @@ def test_real_animation_timer_runs_without_ticking_simulation_and_stops_when_hid
 def test_sprite_assets_have_safe_borders_consistent_baselines_and_eight_distinct_frames() -> None:
     base = resources.files("miniatured_world") / "assets"
     for folder, states, size, baseline, count in (
-        ("characters/alchemist_girl", ("idle", "work", "success", "failure", "rest"), (192, 192), 180, 1),
-        ("cauldron/magic_cauldron", ("idle", "receive", "success", "failure"), (96, 128), 120, 8),
+        ("characters/alchemist_girl", ("idle", "work", "success", "failure", "rest"), (128, 128), 120, 1),
+        ("cauldron/magic_cauldron", ("idle", "receive", "success", "failure"), (96, 112), 104, 8),
     ):
         for state in states:
             contents = set()

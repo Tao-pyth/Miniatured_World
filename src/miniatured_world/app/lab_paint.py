@@ -17,16 +17,7 @@ def load_props() -> dict[str, QPixmap]:
         image = QImage.fromData((base / f"{name}.png").read_bytes())
         if image.isNull() or not image.hasAlphaChannel():
             raise ValueError(f"透過素材を読み込めません: {name}")
-        # 透明余白を描画領域から除外するだけで、素材の画素は加工しない。
-        rgba = image.convertToFormat(QImage.Format.Format_RGBA8888)
-        opaque = [index for index, alpha in enumerate(bytes(rgba.constBits())[3::4]) if alpha >= 128]
-        if not opaque:
-            raise ValueError(f"素材が空です: {name}")
-        width = image.width()
-        left, right = min(i % width for i in opaque), max(i % width for i in opaque)
-        top, bottom = min(opaque) // width, max(opaque) // width
-        region = QRect(left, top, right - left + 1, bottom - top + 1)
-        result[key] = QPixmap.fromImage(image.copy(region))
+        result[key] = QPixmap.fromImage(image)
     return result
 
 
@@ -47,9 +38,9 @@ def draw_props(painter: QPainter, layout: LabLayout, props: dict[str, QPixmap]) 
 
 def draw_character(painter: QPainter, layout: LabLayout, sprite: QPixmap, *, position=None) -> None:
     x, y = position or layout.character_home
-    size = 230 * layout.character_scale
+    size = 128 * layout.pixel_scale
     shadow(painter, x, y - 2, size * 0.52)
-    painter.drawPixmap(QRectF(x - size / 2, y - size * 180 / 192, size, size), sprite, QRectF(sprite.rect()))
+    painter.drawPixmap(QRectF(x - size / 2, y - size * 120 / 128, size, size), sprite, QRectF(sprite.rect()))
 
 
 def draw_cauldron(painter: QPainter, layout: LabLayout, sprite: QPixmap) -> None:
@@ -57,7 +48,7 @@ def draw_cauldron(painter: QPainter, layout: LabLayout, sprite: QPixmap) -> None
     x, y = item.position
     width, height = item.size
     shadow(painter, x, y - 2, width * 0.65)
-    painter.drawPixmap(QRectF(x - width / 2, y - height * 120 / 128, width, height), sprite, QRectF(sprite.rect()))
+    painter.drawPixmap(QRectF(x - width / 2, y - height * 104 / 112, width, height), sprite, QRectF(sprite.rect()))
 
 
 def _material(painter: QPainter, x: float, y: float, key: str, size: float = 8) -> None:
@@ -115,7 +106,7 @@ def _prop(painter: QPainter, layout: LabLayout, props: dict[str, QPixmap], scene
         _bottle(painter, x, y - 12)
 
 
-def draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixmap], characters: dict[str, QPixmap], cauldrons: dict[str, tuple[QPixmap, ...]], scene: LabScene, elapsed_ms: int, frame_index: int) -> None:
+def _draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixmap], characters: dict[str, QPixmap], cauldrons: dict[str, tuple[QPixmap, ...]], scene: LabScene, elapsed_ms: int, frame_index: int) -> None:
     """接地位置の奥から順に描き、道具間の演出はその手前で描く。"""
     items = [(g.position[1], g.key) for g in layout.gimmicks]
     items.append((scene.character_position[1], "character"))
@@ -123,14 +114,14 @@ def draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixma
         if key == "character":
             sprite = characters.get(scene.character_state) or characters["idle"]
             x, y = scene.character_position
-            size = 230 * layout.character_scale
+            size = 128 * layout.pixel_scale
             shadow(painter, x, y - 2, size * 0.52)
             bob = -round(3 * abs(math.sin(elapsed_ms / 350))) if scene.character_state == "success" else 0
             painter.save()
             painter.translate(x, y + bob)
             if scene.facing_right:
                 painter.scale(-1, 1)
-            painter.drawPixmap(QRectF(-size / 2, -size * 180 / 192, size, size), sprite, QRectF(sprite.rect()))
+            painter.drawPixmap(QRectF(-size / 2, -size * 120 / 128, size, size), sprite, QRectF(sprite.rect()))
             painter.restore()
         elif key == "cauldron":
             state = scene.cauldron_state.removeprefix("cauldron_")
@@ -144,7 +135,7 @@ def draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixma
     actor_x, actor_y = scene.character_position
     cauldron = layout.gimmick("cauldron")
     mouth_x = cauldron.position[0]
-    mouth_y = cauldron.position[1] - cauldron.size[1] * 50 / 128
+    mouth_y = cauldron.position[1] - cauldron.size[1] * 55 / 112
     if phase == "arrive":
         for index, material in enumerate(scene.batch_materials):
             t = material_transfer_progress(phase, progress, index, len(scene.batch_materials))
@@ -156,17 +147,17 @@ def draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixma
             t = material_transfer_progress(phase, progress, index, len(scene.batch_materials))
             if 0 < t < 1:
                 source_x = bx - 22 + index * 9
-                _material(painter, source_x + (actor_x - 90 - source_x) * t, by - 31 + (actor_y - 95 - by + 31) * t - 24 * math.sin(t * math.pi), material)
+                _material(painter, source_x + (actor_x - 44 - source_x) * t, by - 31 + (actor_y - 82 - by + 31) * t - 24 * math.sin(t * math.pi), material)
     elif phase == "mix" and progress > 0.18:
         for index in range(4):
             t = ((progress - 0.18) * 3 + index / 4) % 1
-            x = actor_x - 90 + (mouth_x - actor_x + 90) * t
-            y = actor_y - 105 + (mouth_y - actor_y + 105) * t - 12 * math.sin(t * math.pi)
+            x = actor_x - 82 + (mouth_x - actor_x + 82) * t
+            y = actor_y - 124 + (mouth_y - actor_y + 124) * t - 12 * math.sin(t * math.pi)
             _material(painter, x, y, "water", 3)
     elif phase == "place":
         px, py = layout.gimmick("product").position
         t = min(1.0, max(0.0, (progress - 0.28) / 0.5))
-        _bottle(painter, actor_x + 84 + (px - actor_x - 84) * t, actor_y - 86 + (py - 12 - actor_y + 86) * t)
+        _bottle(painter, actor_x + 56 + (px - actor_x - 56) * t, actor_y - 154 + (py - 12 - actor_y + 154) * t)
 
     if "reaction_light" in scene.effects:
         painter.setPen(Qt.PenStyle.NoPen)
@@ -176,3 +167,18 @@ def draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixma
             x, y = mouth_x + math.cos(angle) * 43, mouth_y - 22 + math.sin(angle) * 13
             painter.drawRect(QRectF(x - 3, y - 1, 6, 2))
             painter.drawRect(QRectF(x - 1, y - 3, 2, 6))
+
+
+def draw_lab_scene(painter: QPainter, layout: LabLayout, props: dict[str, QPixmap], characters: dict[str, QPixmap], cauldrons: dict[str, tuple[QPixmap, ...]], scene: LabScene, elapsed_ms: int, frame_index: int) -> None:
+    """前景を共通の論理ピクセル面へ描き、整数倍で合成する。"""
+    unit = layout.pixel_scale
+    layer = QImage(math.ceil(1280 / unit), math.ceil(853 / unit), QImage.Format.Format_ARGB32_Premultiplied)
+    layer.fill(Qt.GlobalColor.transparent)
+    pixel_painter = QPainter(layer)
+    pixel_painter.scale(1 / unit, 1 / unit)
+    _draw_lab_scene(pixel_painter, layout, props, characters, cauldrons, scene, elapsed_ms, frame_index)
+    pixel_painter.end()
+    painter.save()
+    painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, False)
+    painter.drawImage(QRectF(0, 0, layer.width() * unit, layer.height() * unit), layer)
+    painter.restore()
