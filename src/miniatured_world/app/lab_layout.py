@@ -13,22 +13,21 @@ class GimmickPlacement:
 
 @dataclass(frozen=True, slots=True)
 class LabLayout:
-    character_scale: float = 1.0
-    cauldron_scale: float = 1.0
+    pixel_scale: int = 2
     character_home: tuple[float, float] = (694, 696)
 
     @property
     def gimmicks(self) -> tuple[GimmickPlacement, ...]:
         return (
-            GimmickPlacement("cauldron", (510, 730), (192 * self.cauldron_scale, 256 * self.cauldron_scale), (672, 684)),
-            GimmickPlacement("book", (900, 692), (98, 140), (724, 696)),
-            GimmickPlacement("basket", (660, 766), (104, 54), (750, 726)),
-            GimmickPlacement("product", (847, 758), (96, 30), (744, 706)),
+            GimmickPlacement("cauldron", (510, 730), (96 * self.pixel_scale, 112 * self.pixel_scale), (672, 684)),
+            GimmickPlacement("book", (848, 692), (48 * self.pixel_scale, 68 * self.pixel_scale), (724, 696)),
+            GimmickPlacement("basket", (660, 766), (52 * self.pixel_scale, 28 * self.pixel_scale), (728, 726)),
+            GimmickPlacement("product", (788, 758), (48 * self.pixel_scale, 16 * self.pixel_scale), (734, 706)),
         )
 
     def gimmick(self, key: str) -> GimmickPlacement:
         return next(item for item in self.gimmicks if item.key == key)
 
 
-# 3案の静止比較後、釜を手前へ30px置き、手元と口の高さを合わせた。
-DEFAULT_LAYOUT = LabLayout(character_scale=1.4, cauldron_scale=1.3)
+# 全前景に同じ整数倍率を適用する。
+DEFAULT_LAYOUT = LabLayout()

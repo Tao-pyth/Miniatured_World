@@ -24,7 +24,7 @@ def main() -> None:
     preview = window.world_tab.preview
     preview.setParent(None)
     preview.resize(1280, 853)
-    output = Path("logs/lab-workspace/workflow")
+    output = Path("logs/pixel-v0.9.3/workflow")
     output.mkdir(parents=True, exist_ok=True)
     base = replace(runtime.snapshot(), materials={}, grid_materials={}, discoveries=(), events=(), activity_level="calm", activity_intensity=0)
     preview.set_snapshot(replace(base, seed=18))
