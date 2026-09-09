@@ -37,6 +37,9 @@ def attach_tray(app, window, runtime: AppRuntime):
     menu.addSeparator()
     actions["settings"] = add_action("設定", lambda: _show_tab(window, "設定"))
     actions["discovery"] = add_action("発見", lambda: _show_tab(window, "発見"))
+    if hasattr(window, "acknowledge_activity_notice"):
+        # 既存のクリック透過設定を変えず、説明を閉じられる入口を残す。
+        actions["activity_notice_close"] = add_action("活動取得の説明を閉じる", window.acknowledge_activity_notice)
     menu.addSeparator()
     actions["exit"] = add_action("終了", lambda: _exit(app, runtime, window))
 
