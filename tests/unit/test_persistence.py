@@ -1,4 +1,7 @@
 import json
+from dataclasses import replace
+
+import pytest
 
 from miniatured_world.persistence import DiscoveryRecord, JsonStore, Settings, update_settings
 
@@ -41,3 +44,16 @@ def test_update_settings_replaces_nested_section_without_mutating_original() -> 
     assert settings.activity.frame_window_ms == 1000
     assert updated.activity.enabled is False
     assert updated.activity.frame_window_ms == 500
+
+
+@pytest.mark.parametrize("notice", ["unseen", "legacy", "shown"])
+def test_activity_notice_round_trip(tmp_path, notice):
+    store = JsonStore(tmp_path)
+    settings = replace(Settings(), activity_notice=notice)
+    store.save_settings(settings)
+    assert store.load_settings() == settings
+
+
+def test_unknown_notice_requires_new_choice(tmp_path):
+    (tmp_path / "settings.json").write_text('{"schema_version":1,"activity_notice":"unknown"}', encoding="utf-8")
+    assert JsonStore(tmp_path).load_settings().activity_notice == "unseen"

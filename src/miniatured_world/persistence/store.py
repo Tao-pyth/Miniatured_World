@@ -40,8 +40,12 @@ class JsonStore:
         data = self._read("settings.json")
         if not data:
             return Settings()
+        notice = data.get("activity_notice", "legacy")
+        if notice not in ("unseen", "legacy", "shown"):
+            notice = "unseen"
         return Settings(
             schema_version=int(data.get("schema_version", 1)),
+            activity_notice=notice,
             general=GeneralSettings(**data.get("general", {})),
             display=DisplaySettings(**data.get("display", {})),
             activity=ActivitySettings(**data.get("activity", {})),

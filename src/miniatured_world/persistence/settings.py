@@ -80,6 +80,8 @@ class DataSettings:
 @dataclass(frozen=True, slots=True)
 class Settings:
     schema_version: int = 1
+    # 説明の表示状態。既存のON設定から同意履歴を推定しない。
+    activity_notice: str = "unseen"
     general: GeneralSettings = field(default_factory=GeneralSettings)
     display: DisplaySettings = field(default_factory=DisplaySettings)
     activity: ActivitySettings = field(default_factory=ActivitySettings)
