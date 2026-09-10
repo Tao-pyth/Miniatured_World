@@ -333,6 +333,19 @@ def build_main_window(
             self.world_tab.refresh(snapshot)
             self.discovery_tab.refresh(snapshot)
 
+        def showEvent(self, event) -> None:  # noqa: N802
+            super().showEvent(event)
+            self.world_tab.refresh(self.runtime.snapshot())
+            # 再表示は同じセッションを再開する。終了済みの実行は復活させない。
+            timer = getattr(self, "timer", None)
+            if (
+                timer is not None
+                and self.runtime.state.running
+                and not self._stability_completed
+                and not timer.isActive()
+            ):
+                timer.start(self._tick_interval_ms)
+
         def closeEvent(self, event) -> None:  # noqa: N802
             self.timer.stop()
             self.world_tab.preview.animation_timer.stop()
