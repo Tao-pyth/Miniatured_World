@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import secrets
 import sys
 from pathlib import Path
 
@@ -27,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
     _configure_console_output()
     parser = _JapaneseArgumentParser(prog="miniatured-world", description="小さなラボラトリーを起動します。", add_help=False)
     parser.add_argument("-h", "--help", action="help", help="このヘルプを表示して終了します。")
-    parser.add_argument("--seed", type=int, default=20260825, help="ラボのセッション生成に使うシード値。")
+    parser.add_argument("--seed", type=int, default=None, help="再現に使うシード値。省略時はGUI・CLIとも起動ごとに新しく生成します。")
     parser.add_argument("--frames", type=int, default=5, help="UIなし実行で進めるフレーム数。")
     parser.add_argument("--duration-seconds", type=float, default=None, help="安定性検証で実行する秒数。")
     parser.add_argument("--tick-interval-ms", type=int, default=1000, help="1フレームの経過時間ミリ秒。")
@@ -43,6 +44,7 @@ def main(argv: list[str] | None = None) -> int:
         help="活動取得元を選択します。windows-global はWindows実活動取得を試みます。",
     )
     args = parser.parse_args(argv)
+    seed = args.seed if args.seed is not None else secrets.randbits(64)
     data_root = None if args.ephemeral else args.data_root or default_data_root()
 
     if not args.no_ui:
@@ -53,7 +55,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.stability_log and duration_seconds is None:
                 duration_seconds = max(1, args.frames) * args.tick_interval_ms / 1000
             return run_qt_app(
-                seed=args.seed,
+                seed=seed,
                 data_root=data_root,
                 activity_provider=args.activity_provider,
                 duration_seconds=duration_seconds,
@@ -64,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Qt画面を起動できないためCLI実行へ切り替えます: {error}", file=sys.stderr)
 
     provider = create_activity_provider(args.activity_provider)
-    runtime = AppRuntime.start(seed=args.seed, provider=provider, data_root=data_root)
+    runtime = AppRuntime.start(seed=seed, provider=provider, data_root=data_root)
     if args.stability_log:
         duration_seconds = args.duration_seconds
         if duration_seconds is None:

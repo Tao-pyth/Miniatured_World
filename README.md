@@ -12,7 +12,7 @@
 
 ## 現在の状態
 
-現在のリリース済みベースライン: **V0.9 / v0.9.7**
+現在のリリース済みベースライン: **V0.9 / v0.9.8**
 
 現在の次候補: **V1.0のMVP条件の検証**。v0.9.5で必須とした手元4系列を実装しました。互換性・常駐品質を含むV1全体の合否は別途判断します。
 
@@ -44,11 +44,13 @@ V0.9.6では、GUIの `--ephemeral` が既定保存先へ設定・発見を読�
 
 V0.9.7では、新規GUI起動時に活動取得の説明と選択を追加しました。既存ユーザーは現在のON/OFFを保ち、操作を止めない説明欄を表示します。[使い方と検証](docs/activity-notice-verification.md)を参照してください。
 
+V0.9.8では、GUI・CLIとも起動ごとに新しいseedを生成します。再現したい場合は `--seed` を指定してください。[seedの使い方と検証](docs/session-seed-verification.md)を参照してください。
+
 ![ラボの動作プレビュー](docs/images/lab-preview.gif)
 
 V0.9.2では、右奥を浅い本棚へ置き換え、本・素材かご・完成品トレーを独立配置しました。素材の到着から本の確認、調合、完成品の配置までを連携させ、人物と釜の白縁・接地・コマ間の輪郭を補正しました。[構図比較と検証記録](docs/lab-workspace-verification.md)から確認できます。
 
-[静止画](docs/images/lab-preview.png) / [v0.9.7配布と更新内容](https://github.com/Tao-pyth/Miniatured_World/releases/tag/v0.9.7)
+[静止画](docs/images/lab-preview.png) / [v0.9.8配布と更新内容](https://github.com/Tao-pyth/Miniatured_World/releases/tag/v0.9.8)
 
 まだMVP RC合格宣言、全環境で保証された完全クリック透過、インストーラー、コード署名、自動更新は含みません。
 
@@ -99,14 +101,16 @@ $env:PYTHONPATH='src'
 python -m miniatured_world --no-ui --ephemeral --frames 5
 ```
 
-デモ活動取得元を明示して実行:
+デモ活動取得元と再現用seedを明示して実行:
 
 ```powershell
 $env:PYTHONPATH='src'
-python -m miniatured_world --no-ui --ephemeral --frames 5 --activity-provider demo
+python -m miniatured_world --no-ui --ephemeral --frames 5 --activity-provider demo --seed 20260825
 ```
 
 活動取得元は `auto`、`demo`、`none`、`windows-idle`、`windows-global` から選べます。`windows-idle` はWindowsの最終入力時刻からアイドル時間だけを取得するPoCです。`windows-global` はWindows Raw Inputを即時にカテゴリ、移動量、クリック、スクロールへ変換する実活動取得元です。どちらも入力文字列、キー列、座標、Window Title、画面キャプチャ、クリップボード内容は保存しません。
+
+v0.9.8からはGUI・CLIとも `--seed` 省略時に毎回生成します。旧版と同じ初期条件を使う場合は `--seed 20260825` を追加してください。再現には同じseedに加えて同じ活動入力も必要です。現在のseedはCLI要約や明示した安定性診断ログで確認できます。
 
 Windows実活動取得を明示して実行:
 
