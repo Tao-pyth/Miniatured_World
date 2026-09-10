@@ -25,6 +25,12 @@ class DeferredActivityProvider:
             )
         return self._provider.status()
 
+    def set_suspended(self, suspended: bool) -> None:
+        # 未生成なら入力もキューも存在しない。休止だけで取得元を生成しない。
+        setter = getattr(self._provider, "set_suspended", None)
+        if setter is not None:
+            setter(suspended)
+
     def poll(self, now_ms: int):
         if self._provider is None:
             self._provider = self._factory()

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +18,7 @@ class RuntimeState:
     muted: bool = False
     activity_collection_enabled: bool = True
     last_frame: ActivityFrame = field(default_factory=ActivityFrame.quiet)
+    system_pause_reasons: set[str] = field(default_factory=set)
 
 
 @dataclass(slots=True, weakref_slot=True)
@@ -53,6 +54,21 @@ class AppRuntime:
 
     def stop(self) -> None:
         self.state.running = False
+
+    def set_system_suspended(self, reason: str, suspended: bool) -> None:
+        was_suspended = bool(self.state.system_pause_reasons)
+        if suspended:
+            self.state.system_pause_reasons.add(reason)
+        else:
+            self.state.system_pause_reasons.discard(reason)
+        is_suspended = bool(self.state.system_pause_reasons)
+        if was_suspended == is_suspended:
+            return
+        self.service.aggregator.discard_pending()
+        self.state.last_frame = ActivityFrame.quiet()
+        setter = getattr(self.provider, "set_suspended", None)
+        if setter is not None:
+            setter(is_suspended)
 
     def set_activity_collection(self, enabled: bool) -> None:
         self.state.activity_collection_enabled = enabled
@@ -109,7 +125,7 @@ class AppRuntime:
         return self.snapshot()
 
     def tick(self, elapsed_ms: int = 1000) -> WorldSnapshot:
-        if not self.state.running or self.state.paused:
+        if not self.state.running or self.state.paused or self.state.system_pause_reasons:
             return self.snapshot()
 
         next_now = self.service.now_ms + elapsed_ms
@@ -125,7 +141,8 @@ class AppRuntime:
             self.service.simulation,
             self.state.last_frame,
             running=self.state.running,
-            paused=self.state.paused,
+            paused=self.state.paused or bool(self.state.system_pause_reasons),
+            system_paused=bool(self.state.system_pause_reasons),
             world_visible=self.state.world_visible,
             muted=self.state.muted,
             activity_collection_enabled=self.state.activity_collection_enabled,
@@ -134,7 +151,15 @@ class AppRuntime:
 
     def provider_status(self) -> ActivityProviderStatus:
         try:
-            return self.provider.status()
+            status = self.provider.status()
+            if self.state.system_pause_reasons:
+                detail = (
+                    "PC状態を確認できないため休止しています。5秒ごとに再試行します。"
+                    if "session_unavailable" in self.state.system_pause_reasons
+                    else "PCの利用再開を待っています。"
+                )
+                return replace(status, active=False, detail=detail)
+            return status
         except Exception as error:
             return ActivityProviderStatus(
                 name="unknown",

@@ -12,7 +12,7 @@
 
 ## 現在の状態
 
-現在のリリース済みベースライン: **V0.9 / v0.9.9**
+現在のリリース済みベースライン: **V0.9 / v0.9.10**
 
 現在の次候補: **V1.0のMVP条件の検証**。v0.9.5で必須とした手元4系列を実装しました。互換性・常駐品質を含むV1全体の合否は別途判断します。
 
@@ -48,11 +48,13 @@ V0.9.8では、GUI・CLIとも起動ごとに新しいseedを生成します。�
 
 V0.9.9では、ウィンドウを閉じた後、トレイから再表示するとWorldが停止したままになる不具合を修正しました。同じセッションを再開し、一時停止や活動取得OFFの設定は維持します。[復帰の使い方と検証](docs/tray-reopen-verification.md)を参照してください。
 
+V0.9.10では、Windowsのロック中にWorld・描画・活動反映を休止し、解除後は元の手動状態を維持して復帰します。[休止と復帰の使い方](docs/session-pause-verification.md)を参照してください。
+
 ![ラボの動作プレビュー](docs/images/lab-preview.gif)
 
 V0.9.2では、右奥を浅い本棚へ置き換え、本・素材かご・完成品トレーを独立配置しました。素材の到着から本の確認、調合、完成品の配置までを連携させ、人物と釜の白縁・接地・コマ間の輪郭を補正しました。[構図比較と検証記録](docs/lab-workspace-verification.md)から確認できます。
 
-[静止画](docs/images/lab-preview.png) / [v0.9.9配布と更新内容](https://github.com/Tao-pyth/Miniatured_World/releases/tag/v0.9.9)
+[静止画](docs/images/lab-preview.png) / [v0.9.10配布と更新内容](https://github.com/Tao-pyth/Miniatured_World/releases/tag/v0.9.10)
 
 まだMVP RC合格宣言、全環境で保証された完全クリック透過、インストーラー、コード署名、自動更新は含みません。
 

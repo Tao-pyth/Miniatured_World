@@ -22,6 +22,7 @@ def run_qt_app(
     """解決済みの保存先で起動する。Noneは設定・発見を保存しない。"""
     from PySide6.QtWidgets import QApplication
     from miniatured_world.app.qt_activity_notice import attach_activity_notice, choose_activity
+    from miniatured_world.app.qt_session import create_session_monitor
 
     app = QApplication.instance() or QApplication([])
     app.setQuitOnLastWindowClosed(False)
@@ -40,5 +41,13 @@ def run_qt_app(
     if provider is None and activity_provider not in ("demo", "none") and runtime.service.settings.activity_notice == "legacy":
         attach_activity_notice(window, runtime)
     window.tray = attach_tray(app, window, runtime)
+    session_monitor = create_session_monitor(runtime, window.refresh)
+    if session_monitor is not None:
+        app.aboutToQuit.connect(session_monitor.stop)
     window.show()
-    return app.exec()
+    try:
+        return app.exec()
+    finally:
+        runtime.stop()
+        if session_monitor is not None:
+            session_monitor.stop()
