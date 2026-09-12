@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "miniatured-world"
-version = "0.9.10"
+version = "0.9.11"
 description = "抽象化されたPC活動で素材が届く、プライバシー優先のデスクトップ実験マスコット。"
 readme = "README.md"
 requires-python = ">=3.13"
