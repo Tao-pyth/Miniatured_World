@@ -207,7 +207,8 @@ def build_main_window(
             self.discoveries.set_value(len(snapshot.discoveries))
             self.status.set_value(_status_text(snapshot))
             self.provider.set_value(_provider_status_text(snapshot))
-            self.pause_button.setText("再開" if snapshot.paused else "一時停止")
+            self.status.setToolTip(snapshot.provider_status.detail if snapshot.system_paused else "")
+            self.pause_button.setText("再開" if self._runtime.state.paused else "一時停止")
             self.activity_button.setText("活動再開" if not snapshot.activity_collection_enabled else "活動停止")
             self.activity_button.setProperty(
                 "runtime_command",
@@ -719,6 +720,8 @@ def build_main_window(
     def _status_text(snapshot: WorldSnapshot) -> str:
         if not snapshot.running:
             return "停止"
+        if snapshot.system_paused:
+            return "PC状態による休止中"
         if snapshot.paused:
             return "一時停止中"
         if not snapshot.activity_collection_enabled:

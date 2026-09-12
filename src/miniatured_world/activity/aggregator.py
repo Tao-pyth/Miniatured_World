@@ -25,6 +25,10 @@ class ActivityAggregator:
         if self._session_start_ms is None:
             self._session_start_ms = event.timestamp_ms
 
+    def discard_pending(self) -> None:
+        """休止境界を越えて古い活動を持ち越さない。"""
+        self._events.clear()
+
     def frame(self, now_ms: int) -> ActivityFrame:
         if self._session_start_ms is None:
             self._session_start_ms = now_ms
@@ -84,4 +88,3 @@ class ActivityAggregator:
 
     def _active_bucket_count(self, events: list[SanitizedActivityEvent], start_ms: int) -> int:
         return len({max(0, event.timestamp_ms - start_ms) // 200 for event in events})
-

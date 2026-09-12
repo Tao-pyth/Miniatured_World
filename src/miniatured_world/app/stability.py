@@ -209,6 +209,7 @@ def _snapshot_payload(snapshot: WorldSnapshot) -> dict[str, Any]:
         "materials": snapshot.materials,
         "muted": snapshot.muted,
         "paused": snapshot.paused,
+        "system_paused": snapshot.system_paused,
         "plant_count": snapshot.plant_count,
         "provider": _provider_status(snapshot),
         "running": snapshot.running,

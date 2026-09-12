@@ -30,6 +30,7 @@ class WorldSnapshot:
     creature_count: int
     events: tuple[str, ...]
     discoveries: tuple[str, ...]
+    system_paused: bool = False
 
     @classmethod
     def from_simulation(
@@ -43,6 +44,7 @@ class WorldSnapshot:
         muted: bool,
         activity_collection_enabled: bool,
         provider_status: ActivityProviderStatus,
+        system_paused: bool = False,
     ) -> "WorldSnapshot":
         state = simulation.session.state
         intensity = frame.intensity()
@@ -54,6 +56,7 @@ class WorldSnapshot:
             activity_intensity=round(intensity, 3),
             running=running,
             paused=paused,
+            system_paused=system_paused,
             world_visible=world_visible,
             muted=muted,
             activity_collection_enabled=activity_collection_enabled,

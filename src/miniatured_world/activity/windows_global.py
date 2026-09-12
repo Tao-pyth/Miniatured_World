@@ -120,6 +120,11 @@ class WindowsGlobalActivityProvider:
             return ()
         return tuple(self.backend.poll(now_ms, self.privacy_filter))
 
+    def set_suspended(self, suspended: bool) -> None:
+        setter = getattr(self.backend, "set_suspended", None)
+        if setter is not None:
+            setter(suspended)
+
 
 @dataclass(slots=True)
 class _UnavailableWindowsBackend:
@@ -140,6 +145,7 @@ class _UnavailableWindowsBackend:
 
 class _WindowsRawInputBackend:
     def __init__(self) -> None:
+        self._suspended = False
         self._queue: list[SanitizedActivityEvent] = []
         self._poll_timestamp_ms = 0
         self._privacy_filter = PrivacyFilter()
@@ -164,12 +170,12 @@ class _WindowsRawInputBackend:
             name="windows-global",
             display_name="Windows実活動",
             available=self._available,
-            active=self._available,
+            active=self._available and not self._suspended,
             detail=self._detail,
         )
 
     def poll(self, now_ms: int, privacy_filter: PrivacyFilter) -> Iterable[SanitizedActivityEvent]:
-        if not self._available:
+        if not self._available or self._suspended:
             return ()
         self._poll_timestamp_ms = now_ms
         self._privacy_filter = privacy_filter
@@ -177,6 +183,15 @@ class _WindowsRawInputBackend:
         events = tuple(self._queue)
         self._queue.clear()
         return events
+
+    def set_suspended(self, suspended: bool) -> None:
+        self._suspended = True
+        if self._hwnd is not None:
+            self._pump_messages()
+        self._queue.clear()
+        # World側の時計も休止しているため、直近の仮想時刻を維持する。
+        # 0へ戻すと復帰直後の入力がOS時計で刻まれ、別の時間軸になる。
+        self._suspended = suspended
 
     def _setup_window(self) -> None:
         user32 = ctypes.windll.user32
@@ -308,6 +323,8 @@ class _WindowsRawInputBackend:
         return int(ctypes.windll.user32.DefWindowProcW(hwnd, msg, wparam, lparam))
 
     def _handle_raw_input(self, lparam: int) -> None:
+        if self._suspended:
+            return
         RID_INPUT = 0x10000003
         RIM_TYPEMOUSE = 0
         RIM_TYPEKEYBOARD = 1
