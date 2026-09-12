@@ -16,6 +16,7 @@ class DeferredActivityProvider:
     def __init__(self, factory: Callable[[], ActivityProvider]) -> None:
         self._factory = factory
         self._provider: ActivityProvider | None = None
+        self._suspended = False
 
     def status(self) -> ActivityProviderStatus:
         if self._provider is None:
@@ -26,12 +27,15 @@ class DeferredActivityProvider:
         return self._provider.status()
 
     def set_suspended(self, suspended: bool) -> None:
+        self._suspended = suspended
         # 未生成なら入力もキューも存在しない。休止だけで取得元を生成しない。
         setter = getattr(self._provider, "set_suspended", None)
         if setter is not None:
             setter(suspended)
 
     def poll(self, now_ms: int):
+        if self._suspended:
+            return ()
         if self._provider is None:
             self._provider = self._factory()
         return self._provider.poll(now_ms)
@@ -45,7 +49,7 @@ def prepare_activity_startup(
 ) -> bool:
     """Falseなら保存・タイマー起動をせず終了する。旧設定は選択し直さない。"""
     if mode in ("demo", "none"):
-        runtime.provider = factory()
+        runtime.attach_provider(factory())
         return True
     settings = runtime.service.settings
     if settings.activity_notice == "unseen":
@@ -59,7 +63,7 @@ def prepare_activity_startup(
             activity_notice="shown",
         ))
         runtime.state.activity_collection_enabled = enabled
-    runtime.provider = DeferredActivityProvider(factory)
+    runtime.attach_provider(DeferredActivityProvider(factory))
     return True
 
 

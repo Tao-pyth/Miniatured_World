@@ -26,6 +26,30 @@ class AppRuntime:
     service: MiniaturedWorldService
     provider: ActivityProvider = field(default_factory=NullActivityProvider)
     state: RuntimeState = field(default_factory=RuntimeState)
+    _activity_suspended: bool | None = field(default=None, init=False)
+
+    def __post_init__(self) -> None:
+        self._sync_activity()
+
+    def attach_provider(self, provider: ActivityProvider) -> None:
+        self.provider = provider
+        self._activity_suspended = None
+        self._sync_activity()
+
+    def _sync_activity(self) -> None:
+        suspended = (
+            not self.state.running or self.state.paused
+            or not self.state.activity_collection_enabled
+            or bool(self.state.system_pause_reasons)
+        )
+        if suspended == self._activity_suspended:
+            return
+        self.service.aggregator.discard_pending()
+        self.state.last_frame = ActivityFrame.quiet()
+        setter = getattr(self.provider, "set_suspended", None)
+        if setter is not None:
+            setter(suspended)
+        self._activity_suspended = suspended
 
     @classmethod
     def start(
@@ -48,30 +72,26 @@ class AppRuntime:
 
     def pause(self) -> None:
         self.state.paused = True
+        self._sync_activity()
 
     def resume(self) -> None:
         self.state.paused = False
+        self._sync_activity()
 
     def stop(self) -> None:
         self.state.running = False
+        self._sync_activity()
 
     def set_system_suspended(self, reason: str, suspended: bool) -> None:
-        was_suspended = bool(self.state.system_pause_reasons)
         if suspended:
             self.state.system_pause_reasons.add(reason)
         else:
             self.state.system_pause_reasons.discard(reason)
-        is_suspended = bool(self.state.system_pause_reasons)
-        if was_suspended == is_suspended:
-            return
-        self.service.aggregator.discard_pending()
-        self.state.last_frame = ActivityFrame.quiet()
-        setter = getattr(self.provider, "set_suspended", None)
-        if setter is not None:
-            setter(is_suspended)
+        self._sync_activity()
 
     def set_activity_collection(self, enabled: bool) -> None:
         self.state.activity_collection_enabled = enabled
+        self._sync_activity()
         self.service.update_setting("activity", "enabled", enabled)
 
     def show_world(self) -> None:
@@ -89,9 +109,10 @@ class AppRuntime:
         self.service.update_setting("sound", "enabled", True)
 
     def update_setting(self, section: str, field_name: str, value: Any) -> None:
-        self.service.update_setting(section, field_name, value)
         if section == "activity" and field_name == "enabled":
-            self.state.activity_collection_enabled = bool(value)
+            self.set_activity_collection(bool(value))
+            return
+        self.service.update_setting(section, field_name, value)
         if section == "sound" and field_name == "enabled":
             self.state.muted = not bool(value)
 
@@ -106,7 +127,7 @@ class AppRuntime:
         elif runtime_command == RuntimeCommand.RESUME:
             self.resume()
         elif runtime_command == RuntimeCommand.TOGGLE_PAUSE:
-            self.state.paused = not self.state.paused
+            self.resume() if self.state.paused else self.pause()
         elif runtime_command == RuntimeCommand.START_ACTIVITY:
             self.set_activity_collection(True)
         elif runtime_command == RuntimeCommand.STOP_ACTIVITY:
@@ -125,6 +146,7 @@ class AppRuntime:
         return self.snapshot()
 
     def tick(self, elapsed_ms: int = 1000) -> WorldSnapshot:
+        self._sync_activity()
         if not self.state.running or self.state.paused or self.state.system_pause_reasons:
             return self.snapshot()
 
@@ -152,6 +174,8 @@ class AppRuntime:
     def provider_status(self) -> ActivityProviderStatus:
         try:
             status = self.provider.status()
+            if not self.state.running:
+                return replace(status, active=False, detail="終了しているため活動取得を停止しています。")
             if self.state.system_pause_reasons:
                 detail = (
                     "PC状態を確認できないため休止しています。5秒ごとに再試行します。"
@@ -159,6 +183,10 @@ class AppRuntime:
                     else "PCの利用再開を待っています。"
                 )
                 return replace(status, active=False, detail=detail)
+            if self.state.paused:
+                return replace(status, active=False, detail="一時停止中のため活動取得を休止しています。")
+            if not self.state.activity_collection_enabled:
+                return replace(status, active=False, detail="活動取得はOFFです。")
             return status
         except Exception as error:
             return ActivityProviderStatus(
