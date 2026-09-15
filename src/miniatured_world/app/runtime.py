@@ -79,8 +79,11 @@ class AppRuntime:
         self._sync_activity()
 
     def stop(self) -> None:
+        was_running = self.state.running
         self.state.running = False
         self._sync_activity()
+        if was_running:
+            self.service.retry_pending_saves(force=True)
 
     def set_system_suspended(self, reason: str, suspended: bool) -> None:
         if suspended:
@@ -147,7 +150,10 @@ class AppRuntime:
 
     def tick(self, elapsed_ms: int = 1000) -> WorldSnapshot:
         self._sync_activity()
-        if not self.state.running or self.state.paused or self.state.system_pause_reasons:
+        if not self.state.running:
+            return self.snapshot()
+        if self.state.paused or self.state.system_pause_reasons:
+            self.service.retry_pending_saves()
             return self.snapshot()
 
         next_now = self.service.now_ms + elapsed_ms

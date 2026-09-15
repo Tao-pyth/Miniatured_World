@@ -59,10 +59,13 @@ class MiniaturedWorldService:
             self.simulation.session.state.discoveries,
             persist=self.settings.data.save_discovery,
         )
+        self.retry_pending_saves()
         return frame
 
     def update_settings(self, settings: Settings) -> None:
         self.settings = settings
+        if self.store and not settings.data.save_discovery:
+            self.store.cancel_pending_discovery()
         self._save_settings(force=True)
 
     def update_setting(self, section: str, field_name: str, value: Any) -> None:
@@ -71,6 +74,12 @@ class MiniaturedWorldService:
     def _save_settings(self, *, force: bool = False) -> None:
         if self.store and (force or self.settings.data.save_settings):
             self.store.save_settings(self.settings)
+
+    def retry_pending_saves(self, *, force: bool = False) -> None:
+        if self.store:
+            if not self.settings.data.save_discovery:
+                self.store.cancel_pending_discovery()
+            self.store.retry_pending(force=force)
 
     def summary_text(self) -> str:
         summary = self.simulation.summary()

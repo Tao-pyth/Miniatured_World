@@ -12,7 +12,7 @@
 
 ## 現在の状態
 
-現在のリリース済みベースライン: **V0.9 / v0.9.12**
+現在のリリース済みベースライン: **V0.9 / v0.9.13**
 
 現在の次候補: **V1.0のMVP条件の検証**。v0.9.5で必須とした手元4系列を実装しました。互換性・常駐品質を含むV1全体の合否は別途判断します。
 
@@ -54,11 +54,13 @@ V0.9.11では、活動取得OFF・手動一時停止・終了時にWindowsの入
 
 V0.9.12では、読み込めない設定・発見ファイルをそのまま保護し、問題のあるファイルだけ保存を休止します。正常なデータの保存は継続します。[保存データの保護と復旧](docs/storage-recovery-verification.md)を参照してください。
 
+V0.9.13では、書き込みに失敗してもラボと正常なファイルの保存を継続し、失敗した保存を5秒後以降と終了時に再試行します。発見タブには過去の発見も表示します。[保存の継続と発見履歴](docs/persistence-continuity-verification.md)を参照してください。
+
 ![ラボの動作プレビュー](docs/images/lab-preview.gif)
 
 V0.9.2では、右奥を浅い本棚へ置き換え、本・素材かご・完成品トレーを独立配置しました。素材の到着から本の確認、調合、完成品の配置までを連携させ、人物と釜の白縁・接地・コマ間の輪郭を補正しました。[構図比較と検証記録](docs/lab-workspace-verification.md)から確認できます。
 
-[静止画](docs/images/lab-preview.png) / [v0.9.12配布と更新内容](https://github.com/Tao-pyth/Miniatured_World/releases/tag/v0.9.12)
+[静止画](docs/images/lab-preview.png) / [v0.9.13配布と更新内容](https://github.com/Tao-pyth/Miniatured_World/releases/tag/v0.9.13)
 
 まだMVP RC合格宣言、全環境で保証された完全クリック透過、インストーラー、コード署名、自動更新は含みません。
 
