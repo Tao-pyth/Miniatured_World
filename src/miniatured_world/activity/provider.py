@@ -43,6 +43,18 @@ class NullActivityProvider:
 @dataclass(slots=True)
 class DemoActivityProvider:
     privacy_filter: PrivacyFilter = field(default_factory=PrivacyFilter)
+    _next_cycle_ms: int = field(default=1000, init=False)
+    _suspended: bool = field(default=False, init=False)
+    _skip_backlog: bool = field(default=False, init=False)
+
+    def reset_timing(self, now_ms: int) -> None:
+        self._next_cycle_ms = (now_ms // 1000 + 1) * 1000
+        self._skip_backlog = False
+
+    def set_suspended(self, suspended: bool) -> None:
+        if suspended:
+            self._skip_backlog = True
+        self._suspended = suspended
 
     def status(self) -> ActivityProviderStatus:
         return ActivityProviderStatus(
@@ -54,15 +66,23 @@ class DemoActivityProvider:
         )
 
     def poll(self, now_ms: int) -> Iterable[SanitizedActivityEvent]:
-        cycle = max(0, now_ms // 1000)
+        if self._suspended:
+            return ()
+        if self._skip_backlog:
+            self._next_cycle_ms = max(self._next_cycle_ms, ((now_ms + 999) // 1000) * 1000)
+            self._skip_backlog = False
         events: list[SanitizedActivityEvent] = []
-        for offset, key in enumerate(("a", "b", "1", " ", "Enter")):
-            events.append(self.privacy_filter.keyboard(key, now_ms + offset * 30))
-        events.append(self.privacy_filter.pointer_move(120 + cycle * 5, 40, now_ms + 180))
-        if cycle % 2 == 0:
-            events.append(self.privacy_filter.pointer_click(now_ms + 220))
-        if cycle % 3 == 0:
-            events.append(self.privacy_filter.idle(now_ms + 300, 10_000))
+        while self._next_cycle_ms <= now_ms:
+            base = self._next_cycle_ms
+            cycle = base // 1000
+            for offset, key in enumerate(("a", "b", "1", " ", "Enter")):
+                events.append(self.privacy_filter.keyboard(key, base + offset * 30))
+            events.append(self.privacy_filter.pointer_move(120 + cycle * 5, 40, base + 180))
+            if cycle % 2 == 0:
+                events.append(self.privacy_filter.pointer_click(base + 220))
+            if cycle % 3 == 0:
+                events.append(self.privacy_filter.idle(base + 300, 10_000))
+            self._next_cycle_ms += 1000
         return tuple(events)
 
 

@@ -37,7 +37,7 @@ class ActivityAggregator:
 
         start_ms = now_ms - self.frame_window_ms
         window_events = [event for event in self._events if start_ms <= event.timestamp_ms <= now_ms]
-        self._events = [event for event in self._events if event.timestamp_ms > start_ms]
+        self._events = [event for event in self._events if event.timestamp_ms > now_ms]
         session_duration = max(0.0, (now_ms - self._session_start_ms) / 1000.0)
 
         if not window_events:
@@ -63,15 +63,16 @@ class ActivityAggregator:
         )
 
         active_event_count = by_type[ActivityType.KEYBOARD] + by_type[ActivityType.POINTER]
-        keyboard_activity = min(1.0, by_type[ActivityType.KEYBOARD] / 20.0)
-        pointer_activity = min(1.0, pointer_magnitude / 5.0)
-        click_activity = min(1.0, by_pointer[PointerCategory.CLICK.value] / 8.0)
-        scroll_activity = min(1.0, scroll_magnitude / 4.0)
+        seconds = self.frame_window_ms / 1000.0
+        keyboard_activity = min(1.0, by_type[ActivityType.KEYBOARD] / (20.0 * seconds))
+        pointer_activity = min(1.0, pointer_magnitude / (5.0 * seconds))
+        click_activity = min(1.0, by_pointer[PointerCategory.CLICK.value] / (8.0 * seconds))
+        scroll_activity = min(1.0, scroll_magnitude / (4.0 * seconds))
         active_events = [event for event in window_events if event.type != ActivityType.IDLE]
-        burstiness = self._burstiness(active_events)
-        continuity = min(1.0, self._active_bucket_count(active_events, start_ms) / 5.0)
+        burstiness = min(1.0, self._burstiness(active_events) / min(1.0, self.frame_window_ms / 200.0))
+        continuity = min(1.0, self._active_bucket_count(active_events, start_ms) / max(1.0, self.frame_window_ms / 200.0))
 
-        active = min(1.0, active_event_count / 30.0 + pointer_activity * 0.25)
+        active = min(1.0, active_event_count / (30.0 * seconds) + pointer_activity * 0.25)
         idle_ratio = max(0.0, min(1.0, max(idle_magnitude, 1.0 - active)))
 
         return ActivityFrame(

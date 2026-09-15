@@ -266,13 +266,13 @@ def build_main_window(
         def __init__(self, runtime: AppRuntime) -> None:
             super().__init__()
             self.runtime = runtime
-            self._tick_interval_ms = tick_interval_ms
+            self._requested_tick_ms = tick_interval_ms
+            self._tick_interval_ms = runtime.service.effective_tick_ms(tick_interval_ms)
+            self._stability_elapsed_ms = 0
             self._stability_frame = 0
             self._stability_completed = False
-            self._stability_frame_limit = (
-                None
-                if duration_seconds is None
-                else max(1, math.ceil(duration_seconds * 1000 / self._tick_interval_ms))
+            self._stability_duration_ms = (
+                None if duration_seconds is None else max(1, math.ceil(duration_seconds * 1000))
             )
             self._stability_logger = (
                 None
@@ -317,12 +317,14 @@ def build_main_window(
 
         def advance(self) -> None:
             try:
-                snapshot = self.runtime.tick(elapsed_ms=self._tick_interval_ms)
+                elapsed = self._tick_interval_ms
+                snapshot = self.runtime.tick(elapsed_ms=elapsed)
+                self._stability_elapsed_ms += elapsed
                 self._stability_frame += 1
                 self.refresh(snapshot)
                 if self._stability_logger is not None:
-                    self._stability_logger.tick(self._stability_frame, snapshot, self.runtime.service.summary_text())
-                if self._stability_frame_limit is not None and self._stability_frame >= self._stability_frame_limit:
+                    self._stability_logger.tick(self._stability_frame, snapshot, self.runtime.service.summary_text(), elapsed_ms=elapsed)
+                if self._stability_duration_ms is not None and self._stability_elapsed_ms >= self._stability_duration_ms:
                     self._complete_stability_run(snapshot)
                     return
                 if not snapshot.running:
@@ -335,6 +337,10 @@ def build_main_window(
                 raise
 
         def refresh(self, snapshot: WorldSnapshot) -> None:
+            interval = self.runtime.service.effective_tick_ms(self._requested_tick_ms)
+            if interval != self._tick_interval_ms:
+                self._tick_interval_ms = interval
+                self.timer.setInterval(interval)
             _apply_display_settings(self)
             self.world_tab.refresh(snapshot)
             self.discovery_tab.refresh(tuple(sorted(self.runtime.service.discovery_manager.discoveries)))

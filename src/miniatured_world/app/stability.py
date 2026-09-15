@@ -92,11 +92,12 @@ class StabilityLogWriter:
             }
         )
 
-    def tick(self, frame_index: int, snapshot: WorldSnapshot, summary: str) -> None:
+    def tick(self, frame_index: int, snapshot: WorldSnapshot, summary: str, *, elapsed_ms: int | None = None) -> None:
         self._write(
             {
                 "event": "tick",
                 "frame": frame_index,
+                "tick_interval_ms": self.tick_interval_ms if elapsed_ms is None else elapsed_ms,
                 "summary": summary,
                 "snapshot": _snapshot_payload(snapshot),
                 "process": _process_metrics(),
@@ -160,7 +161,11 @@ def run_stability_check(
     if tick_interval_ms <= 0:
         raise ValueError("tick_interval_ms must be positive.")
 
-    frame_count = max(1, math.ceil(duration_seconds * 1000 / tick_interval_ms))
+    requested_tick_ms = tick_interval_ms
+    tick_interval_ms = runtime.service.effective_tick_ms(requested_tick_ms)
+    duration_ms = max(1, math.ceil(duration_seconds * 1000))
+    elapsed_total_ms = 0
+    frame_count = 0
     snapshot = runtime.snapshot()
 
     with StabilityLogWriter(
@@ -172,11 +177,14 @@ def run_stability_check(
     ) as stability_log:
         stability_log.start(snapshot)
         try:
-            for frame_index in range(1, frame_count + 1):
-                snapshot = runtime.tick(elapsed_ms=tick_interval_ms)
-                stability_log.tick(frame_index, snapshot, runtime.service.summary_text())
+            while elapsed_total_ms < duration_ms:
+                interval = min(runtime.service.effective_tick_ms(requested_tick_ms), duration_ms - elapsed_total_ms)
+                snapshot = runtime.tick(elapsed_ms=interval)
+                elapsed_total_ms += interval
+                frame_count += 1
+                stability_log.tick(frame_count, snapshot, runtime.service.summary_text(), elapsed_ms=interval)
                 if realtime:
-                    target = stability_log.started_at + frame_index * (tick_interval_ms / 1000)
+                    target = stability_log.started_at + elapsed_total_ms / 1000
                     sleeper(max(0.0, target - clock()))
 
             stability_log.completed(frame_count, snapshot, runtime.service.summary_text())
