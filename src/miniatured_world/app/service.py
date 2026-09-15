@@ -9,6 +9,7 @@ from miniatured_world.activity import ActivityAggregator, PrivacyFilter
 from miniatured_world.activity.models import ActivityFrame, ActivitySelection
 from miniatured_world.persistence import DiscoveryManager, JsonStore, Settings, update_settings
 from miniatured_world.world import WorldSession, WorldSimulation
+from miniatured_world.persistence.log_registry import LogRegistry
 
 
 _SUMMARY_LABELS = {
@@ -28,6 +29,7 @@ class MiniaturedWorldService:
     store: JsonStore | None = None
     discovery_manager: DiscoveryManager = field(default_factory=DiscoveryManager)
     now_ms: int = 0
+    log_registry: LogRegistry = field(init=False)
     _next_activity_ms: int = field(default=1000, init=False)
     _next_world_ms: int = field(default=1000, init=False)
     _persistence_initialized: bool = field(default=False, init=False)
@@ -35,6 +37,7 @@ class MiniaturedWorldService:
     _display_frame: ActivityFrame = field(default_factory=ActivityFrame.quiet, init=False)
 
     def __post_init__(self) -> None:
+        self.log_registry = LogRegistry(self.store)
         self._apply_activity_selection()
         self.reset_activity()
 

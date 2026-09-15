@@ -12,6 +12,7 @@ from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.app.snapshot import WorldSnapshot
 from miniatured_world.app.stability import StabilityLogWriter
 from miniatured_world.persistence.settings import Settings
+from miniatured_world.persistence.log_registry import identify_log
 
 
 def build_main_window(
@@ -23,14 +24,17 @@ def build_main_window(
     on_stability_complete: Callable[[], None] | None = None,
 ):
     from PySide6.QtCore import QElapsedTimer, QRect, Qt, QTimer
-    from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
+    from PySide6.QtGui import QColor, QImage, QPainter, QPixmap, QPixmapCache
     from miniatured_world.app.lab_layout import DEFAULT_LAYOUT
     from miniatured_world.app.lab_paint import draw_lab_scene, load_props
     from miniatured_world.app.lab_hands import load_hand_assets
+    from miniatured_world.app.hand_motion import motion_data, motion_clip
     from PySide6.QtWidgets import (
         QCheckBox,
         QComboBox,
         QFormLayout,
+        QFileDialog,
+        QDialog,
         QFrame,
         QGridLayout,
         QGroupBox,
@@ -40,6 +44,7 @@ def build_main_window(
         QMainWindow,
         QMessageBox,
         QPushButton,
+        QPlainTextEdit,
         QSlider,
         QSpinBox,
         QStyle,
@@ -78,6 +83,25 @@ def build_main_window(
             self.animation.observe(snapshot)
             self._sync_animation_timer()
             self.update()
+
+        def clear_cache(self) -> bool:
+            try:
+                motion_data.__wrapped__()  # 再読込可能かを先に確認し、失敗時の表示を保つ。
+                background = _load_lab_background()
+                characters = _load_character_sprites()
+                cauldron = _load_cauldron_sprites()
+                props, hands = load_props(), load_hand_assets()
+                if background.isNull() or not self._character_sprites.keys() <= characters.keys() or any(len(cauldron.get(key, ())) < len(frames) for key, frames in self._cauldron_sprites.items()):
+                    raise ValueError("画像を読み直せません。")
+            except (OSError, ValueError, RuntimeError):
+                return False
+            self._background, self._character_sprites, self._cauldron_sprites = background, characters, cauldron
+            self._props, self._hand_assets = props, hands
+            QPixmapCache.clear()
+            motion_clip.cache_clear()
+            motion_data.cache_clear()
+            self.update()
+            return True
 
         def _sync_animation_timer(self) -> None:
             snapshot = self._snapshot
@@ -285,6 +309,7 @@ def build_main_window(
                     else self._tick_interval_ms / 1000,
                     tick_interval_ms=self._tick_interval_ms,
                     realtime=True,
+                    registry=runtime.service.log_registry,
                 )
             )
             self._on_stability_complete = on_stability_complete
@@ -310,6 +335,12 @@ def build_main_window(
             self.data_result.setObjectName("data_delete_result")
             self.data_result.setWordWrap(True)
             self.statusBar().addWidget(self.data_result, 1)
+            self._data_result_lines: list[str] = []
+            self.data_details = QPushButton("削除結果の詳細")
+            self.data_details.setObjectName("data_delete_details")
+            self.data_details.clicked.connect(self._show_data_details)
+            self.data_details.hide()
+            self.statusBar().addPermanentWidget(self.data_details)
             _apply_display_settings(self)
 
             self.timer = QTimer(self)
@@ -351,6 +382,8 @@ def build_main_window(
             self.discovery_tab.refresh(tuple(sorted(self.runtime.service.discovery_manager.discoveries)))
             store = self.runtime.service.store
             messages = "\n".join(issue.message for issue in store.issues) if store else ""
+            if self.runtime.service.log_registry.registration_failed:
+                messages += "\nログを管理一覧に登録できませんでした。過去ログの選択から対象を確認してください。"
             self.storage_notice.setText(messages)
             self.storage_notice.setVisible(bool(messages))
 
@@ -368,32 +401,86 @@ def build_main_window(
                 timer.start(self._tick_interval_ms)
 
         def _delete_saved_data(self, target: str) -> None:
-            if self.runtime.service.store is None:
+            if self.runtime.service.store is None and target != "cache":
                 return
-            labels = {"settings": "設定", "discovery": "発見データ", "settings_and_discovery": "設定と発見データ"}
-            dialog = QMessageBox(self)
-            dialog.setObjectName("data_delete_confirmation")
-            dialog.setWindowTitle(f"{labels[target]}の削除")
-            dialog.setIcon(QMessageBox.Icon.Warning)
-            detail = "現在のラボは続きます。削除した種類の保存はOFFになり、必要な場合は設定からONにできます。"
-            if target != "discovery":
-                detail += "設定を初期化し、活動取得もOFFにします。"
-            dialog.setText(f"{labels[target]}を削除しますか？ 元に戻せません。\n\n{detail}")
-            erase = dialog.addButton("削除する", QMessageBox.ButtonRole.DestructiveRole)
-            cancel = dialog.addButton("キャンセル", QMessageBox.ButtonRole.RejectRole)
-            dialog.setDefaultButton(cancel)
-            dialog.setEscapeButton(cancel)
-            dialog.exec()
-            confirmed = dialog.clickedButton() == erase
-            dialog.deleteLater()
-            if not confirmed:
+            registry = self.runtime.service.log_registry
+            labels = {"settings": "設定", "discovery": "発見データ", "settings_and_discovery": "設定と発見データ", "logs": "管理しているログ", "selected_logs": "選択したログ", "cache": "キャッシュ", "all": "すべてのアプリケーションデータ"}
+            entries = {entry.path: entry for entry in registry.entries} if target in ("logs", "all") else {}
+            rejected = set()
+            def select_logs() -> bool:
+                paths, _ = QFileDialog.getOpenFileNames(self, "削除する過去ログを選択", "", "診断ログ (*.jsonl);;すべてのファイル (*)")
+                for name in paths:
+                    try:
+                        entry = identify_log(Path(name))
+                    except (OSError, ValueError, UnicodeError):
+                        rejected.add(name)
+                    else:
+                        entries[entry.path] = entry
+                return bool(paths)
+            if target == "selected_logs" and not select_logs():
                 return
-            result = self.runtime.delete_saved_data(target)
+            while True:
+                dialog = QMessageBox(self)
+                dialog.setObjectName("data_delete_confirmation")
+                dialog.setWindowTitle(f"{labels[target]}の削除")
+                dialog.setIcon(QMessageBox.Icon.Warning)
+                detail = "現在のラボは続きます。"
+                if target in ("settings", "discovery", "settings_and_discovery", "all"):
+                    detail += "削除した種類の保存はOFFになり、設定からONにできます。"
+                if target in ("settings", "settings_and_discovery", "all"):
+                    detail += "設定を初期化し、活動取得もOFFにします。"
+                if target in ("logs", "selected_logs", "all"):
+                    detail += f"\n対象ログ: {len(entries)}件。ログ出力を停止して削除します。"
+                    detail += "\n未登録の過去ログは「過去ログを追加」から選択できます。未知のファイルは自動探索しません。"
+                    if registry.protected:
+                        detail += "\n管理一覧を読めないため、一部の過去ログの所在を確認できません。一覧を保護し、全ログの削除済みとは扱いません。"
+                if target in ("cache", "all"):
+                    detail += "\n画像と動作のキャッシュを読み直します。同梱の元画像は削除しません。"
+                if target == "all":
+                    detail += "\n設定・発見・ログ・ログ管理一覧・保存用一時ファイル・キャッシュが対象です。"
+                if rejected:
+                    detail += f"\nログ形式を確認できない選択ファイル{len(rejected)}件は削除しません。"
+                detail += "\n" + "\n".join(list(entries)[:5])
+                dialog.setText(f"{labels[target]}を削除しますか？ 元に戻せません。\n\n{detail}")
+                if len(entries) > 5:
+                    dialog.setDetailedText("\n".join(entries))
+                    for button in dialog.buttons():
+                        button.setText("対象の一覧")
+                        button.clicked.connect(lambda checked=False, item=button: item.setText("対象の一覧"))
+                erase = dialog.addButton("削除する", QMessageBox.ButtonRole.DestructiveRole)
+                cancel = dialog.addButton("キャンセル", QMessageBox.ButtonRole.RejectRole)
+                add = dialog.addButton("過去ログを追加", QMessageBox.ButtonRole.ActionRole) if target in ("logs", "selected_logs", "all") else None
+                dialog.setDefaultButton(cancel)
+                dialog.setEscapeButton(cancel)
+                dialog.exec()
+                clicked = dialog.clickedButton()
+                dialog.deleteLater()
+                if add is not None and clicked == add:
+                    select_logs()
+                    continue
+                if clicked != erase:
+                    return
+                break
+            result = {name: False for name in rejected}
+            if target in ("logs", "selected_logs", "all"):
+                result.update(registry.delete(entries.values()))
+                if registry.registration_failed:
+                    result["log_registration"] = False
+            if target in ("settings", "discovery", "settings_and_discovery", "all"):
+                result.update(self.runtime.delete_saved_data("settings_and_discovery" if target == "all" else target))
+            if target in ("cache", "all"):
+                result["cache"] = self.world_tab.preview.clear_cache()
             messages = []
             for name, success in result.items():
-                label = "設定" if name == "settings.json" else "発見データ"
+                label = {"settings.json": "設定", "discovery.json": "発見データ", "log-index.json": "ログ管理一覧", "cache": "キャッシュ", "log_registration": "所在を確認できないログ"}.get(name, f"ログ（{name}）")
                 messages.append(f"{label}を削除しました。" if success else f"{label}を削除できませんでした。")
-            self.data_result.setText("\n".join(messages))
+            self._data_result_lines = messages
+            if len(messages) > 6:
+                failed = sum(not value for value in result.values())
+                self.data_result.setText(f"削除結果: 成功{len(result) - failed}件、未完了{failed}件。対象別の結果は詳細から確認できます。")
+            else:
+                self.data_result.setText("\n".join(messages))
+            self.data_details.setVisible(len(messages) > 6)
             previous = self.settings_tab
             self.tabs.removeTab(1)
             self.settings_tab = _SettingsTab(self.runtime.service.settings, self.runtime, self._delete_saved_data)
@@ -403,6 +490,21 @@ def build_main_window(
             inner.setCurrentIndex(inner.count() - 1)
             previous.deleteLater()
             self.refresh(self.runtime.snapshot())
+
+        def _show_data_details(self) -> None:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("削除結果の詳細")
+            layout = QVBoxLayout(dialog)
+            text = QPlainTextEdit()
+            text.setReadOnly(True)
+            text.setPlainText("\n".join(self._data_result_lines))
+            layout.addWidget(text)
+            close = QPushButton("閉じる")
+            close.clicked.connect(dialog.accept)
+            layout.addWidget(close)
+            dialog.resize(680, 400)
+            dialog.exec()
+            dialog.deleteLater()
 
         def closeEvent(self, event) -> None:  # noqa: N802
             self.timer.stop()
@@ -744,13 +846,13 @@ def build_main_window(
             ("設定を保存", _check(settings.data.save_settings, on_change=_setting(runtime, "data", "save_settings"))),
             ("スキーマバージョン", _spin(settings.data.schema_version, 1, 99, 1)),
         ]
-        for target, label in (("discovery", "発見データを削除"), ("settings", "設定を削除・初期化"), ("settings_and_discovery", "設定と発見データを削除")):
+        for target, label in (("discovery", "発見データを削除"), ("settings", "設定を削除・初期化"), ("settings_and_discovery", "設定と発見データを削除"), ("logs", "ログを削除"), ("selected_logs", "過去のログを選んで削除"), ("cache", "キャッシュを削除"), ("all", "すべてのアプリデータを削除")):
             button = QPushButton(label)
             button.setObjectName(f"delete_{target}")
-            button.setEnabled(runtime.service.store is not None)
+            button.setEnabled(runtime.service.store is not None or target == "cache")
             button.clicked.connect(lambda checked=False, selected=target: on_delete(selected))
             rows.append(("", button))
-        explanation = QLabel("削除前に確認します。設定と発見が対象です。ログやキャッシュは含みません。" if runtime.service.store else "一時実行中は保存先を読み書きしないため、保存データの削除はできません。")
+        explanation = QLabel("削除前に対象を確認します。未登録の過去ログは選択して追加できます。" if runtime.service.store else "一時実行中は既存の保存先に触れません。キャッシュのみ削除できます。")
         explanation.setWordWrap(True)
         rows.append(("", explanation))
         return _group(
