@@ -38,6 +38,7 @@ def build_main_window(
         QLabel,
         QListWidget,
         QMainWindow,
+        QMessageBox,
         QPushButton,
         QSlider,
         QSpinBox,
@@ -226,7 +227,7 @@ def build_main_window(
             self._runtime.handle(command)
 
     class _SettingsTab(QWidget):
-        def __init__(self, settings: Settings, runtime: AppRuntime) -> None:
+        def __init__(self, settings: Settings, runtime: AppRuntime, on_delete: Callable[[str], None]) -> None:
             super().__init__()
             self._runtime = runtime
             layout = QVBoxLayout(self)
@@ -239,7 +240,7 @@ def build_main_window(
             tabs.addTab(_notification_settings(settings, runtime), "通知")
             tabs.addTab(_privacy_settings(settings), "プライバシー")
             tabs.addTab(_performance_settings(settings, runtime), "性能")
-            tabs.addTab(_data_settings(settings, runtime), "データ")
+            tabs.addTab(_data_settings(settings, runtime, on_delete), "データ")
             layout.addWidget(tabs)
 
     class _DiscoveryTab(QWidget):
@@ -293,7 +294,7 @@ def build_main_window(
 
             self.tabs = QTabWidget()
             self.world_tab = _WorldTab(runtime)
-            self.settings_tab = _SettingsTab(runtime.service.settings, runtime)
+            self.settings_tab = _SettingsTab(runtime.service.settings, runtime, self._delete_saved_data)
             self.discovery_tab = _DiscoveryTab()
             self.tabs.addTab(self.world_tab, "ラボ")
             self.tabs.addTab(self.settings_tab, "設定")
@@ -305,6 +306,10 @@ def build_main_window(
             self.storage_notice.setWordWrap(True)
             self.storage_notice.setStyleSheet("color:#302b25; background:#f2e6cb; padding:8px;")
             self.statusBar().addWidget(self.storage_notice, 1)
+            self.data_result = QLabel()
+            self.data_result.setObjectName("data_delete_result")
+            self.data_result.setWordWrap(True)
+            self.statusBar().addWidget(self.data_result, 1)
             _apply_display_settings(self)
 
             self.timer = QTimer(self)
@@ -361,6 +366,43 @@ def build_main_window(
                 and not timer.isActive()
             ):
                 timer.start(self._tick_interval_ms)
+
+        def _delete_saved_data(self, target: str) -> None:
+            if self.runtime.service.store is None:
+                return
+            labels = {"settings": "設定", "discovery": "発見データ", "settings_and_discovery": "設定と発見データ"}
+            dialog = QMessageBox(self)
+            dialog.setObjectName("data_delete_confirmation")
+            dialog.setWindowTitle(f"{labels[target]}の削除")
+            dialog.setIcon(QMessageBox.Icon.Warning)
+            detail = "現在のラボは続きます。削除した種類の保存はOFFになり、必要な場合は設定からONにできます。"
+            if target != "discovery":
+                detail += "設定を初期化し、活動取得もOFFにします。"
+            dialog.setText(f"{labels[target]}を削除しますか？ 元に戻せません。\n\n{detail}")
+            erase = dialog.addButton("削除する", QMessageBox.ButtonRole.DestructiveRole)
+            cancel = dialog.addButton("キャンセル", QMessageBox.ButtonRole.RejectRole)
+            dialog.setDefaultButton(cancel)
+            dialog.setEscapeButton(cancel)
+            dialog.exec()
+            confirmed = dialog.clickedButton() == erase
+            dialog.deleteLater()
+            if not confirmed:
+                return
+            result = self.runtime.delete_saved_data(target)
+            messages = []
+            for name, success in result.items():
+                label = "設定" if name == "settings.json" else "発見データ"
+                messages.append(f"{label}を削除しました。" if success else f"{label}を削除できませんでした。")
+            self.data_result.setText("\n".join(messages))
+            previous = self.settings_tab
+            self.tabs.removeTab(1)
+            self.settings_tab = _SettingsTab(self.runtime.service.settings, self.runtime, self._delete_saved_data)
+            self.tabs.insertTab(1, self.settings_tab, "設定")
+            self.tabs.setCurrentIndex(1)
+            inner = self.settings_tab.findChild(QTabWidget)
+            inner.setCurrentIndex(inner.count() - 1)
+            previous.deleteLater()
+            self.refresh(self.runtime.snapshot())
 
         def closeEvent(self, event) -> None:  # noqa: N802
             self.timer.stop()
@@ -496,7 +538,7 @@ def build_main_window(
         form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
         form.setFormAlignment(Qt.AlignmentFlag.AlignTop)
         for label, widget in rows:
-            if hasattr(widget, "setObjectName"):
+            if hasattr(widget, "setObjectName") and not widget.objectName():
                 widget.setObjectName(_object_name(title, label))
             form.addRow(label, widget)
         return box
@@ -696,14 +738,24 @@ def build_main_window(
             ],
         )
 
-    def _data_settings(settings: Settings, runtime: AppRuntime) -> QWidget:
+    def _data_settings(settings: Settings, runtime: AppRuntime, on_delete: Callable[[str], None]) -> QWidget:
+        rows = [
+            ("発見を保存", _check(settings.data.save_discovery, on_change=_setting(runtime, "data", "save_discovery"))),
+            ("設定を保存", _check(settings.data.save_settings, on_change=_setting(runtime, "data", "save_settings"))),
+            ("スキーマバージョン", _spin(settings.data.schema_version, 1, 99, 1)),
+        ]
+        for target, label in (("discovery", "発見データを削除"), ("settings", "設定を削除・初期化"), ("settings_and_discovery", "設定と発見データを削除")):
+            button = QPushButton(label)
+            button.setObjectName(f"delete_{target}")
+            button.setEnabled(runtime.service.store is not None)
+            button.clicked.connect(lambda checked=False, selected=target: on_delete(selected))
+            rows.append(("", button))
+        explanation = QLabel("削除前に確認します。設定と発見が対象です。ログやキャッシュは含みません。" if runtime.service.store else "一時実行中は保存先を読み書きしないため、保存データの削除はできません。")
+        explanation.setWordWrap(True)
+        rows.append(("", explanation))
         return _group(
             "データ",
-            [
-                ("発見を保存", _check(settings.data.save_discovery, on_change=_setting(runtime, "data", "save_discovery"))),
-                ("設定を保存", _check(settings.data.save_settings, on_change=_setting(runtime, "data", "save_settings"))),
-                ("スキーマバージョン", _spin(settings.data.schema_version, 1, 99, 1)),
-            ],
+            rows,
         )
 
     def _apply_display_settings(window: QMainWindow) -> None:

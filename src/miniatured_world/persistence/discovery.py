@@ -9,6 +9,11 @@ from miniatured_world.persistence.store import DiscoveryRecord, JsonStore
 class DiscoveryManager:
     store: JsonStore | None = None
     discoveries: set[str] = field(default_factory=set)
+    _forgotten_in_session: set[str] = field(default_factory=set)
+
+    def forget(self, current_world: set[str]) -> None:
+        self.discoveries.clear()
+        self._forgotten_in_session.update(current_world)
 
     @classmethod
     def load(cls, store: JsonStore | None = None) -> "DiscoveryManager":
@@ -18,7 +23,7 @@ class DiscoveryManager:
         return manager
 
     def merge(self, discovered: set[str] | list[str] | tuple[str, ...], *, persist: bool = True) -> DiscoveryRecord:
-        self.discoveries.update(str(item) for item in discovered)
+        self.discoveries.update(str(item) for item in discovered if str(item) not in self._forgotten_in_session)
         record = DiscoveryRecord(discoveries=sorted(self.discoveries))
         if self.store and persist:
             self.store.save_discovery(record)
