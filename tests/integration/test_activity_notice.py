@@ -62,7 +62,7 @@ def test_legacy_notice_preserves_all_preferences_and_discovery(tmp_path, enabled
         runtime.tick()
         assert len(created) == int(enabled)
     finally:
-        window.close()
+        window.shutdown()
     restarted = AppRuntime.start(seed=42, data_root=tmp_path)
     assert prepare_activity_startup(restarted, "auto", factory, lambda: pytest.fail("説明済みの再選択"))
     assert restarted.service.settings.activity_notice == "shown"

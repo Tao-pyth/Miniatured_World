@@ -47,7 +47,7 @@ def test_real_modal_confirmation_cancel_and_state_refresh(tmp_path, target, conf
                 assert not window.settings_tab.findChild(QCheckBox, "activity_enabled").isChecked()
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_gui_partial_failure_does_not_claim_everything_deleted(tmp_path):
@@ -74,7 +74,7 @@ def test_gui_partial_failure_does_not_claim_everything_deleted(tmp_path):
         assert "secret" not in window.storage_notice.text()
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_ephemeral_disables_all_persistent_delete_actions():
@@ -87,4 +87,4 @@ def test_ephemeral_disables_all_persistent_delete_actions():
         assert all(b.isEnabled() == (b.objectName() == "delete_cache") for b in buttons)
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()

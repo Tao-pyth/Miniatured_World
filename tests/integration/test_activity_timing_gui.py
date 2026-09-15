@@ -33,7 +33,7 @@ def test_gui_interval_change_preserves_duration_not_frame_count(tmp_path):
         assert sum(row["tick_interval_ms"] for row in rows if row["event"] == "tick") == 2000
         assert runtime.service.now_ms == 2000
     finally:
-        runtime.stop(); window.close()
+        runtime.stop(); window.shutdown()
 
 
 def test_stability_log_records_effective_interval_and_exact_duration(tmp_path):

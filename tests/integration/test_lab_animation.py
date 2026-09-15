@@ -53,7 +53,7 @@ def test_real_animation_timer_runs_without_ticking_simulation_and_stops_when_hid
         window.refresh(before)
         assert preview.animation_timer.isActive()
     finally:
-        window.close()
+        window.shutdown()
         runtime.stop()
     assert not preview.animation_timer.isActive()
     assert not window.timer.isActive()
@@ -114,7 +114,7 @@ def test_all_cauldron_frames_change_rendered_pixels_at_multiple_sizes() -> None:
                 assert len(frames) == 8
     finally:
         preview.close()
-        window.close()
+        window.shutdown()
         runtime.stop()
 
 
@@ -146,7 +146,7 @@ def test_workflow_props_render_each_stage_at_multiple_window_sizes() -> None:
         assert runtime.snapshot() == before
     finally:
         preview.close()
-        window.close()
+        window.shutdown()
         runtime.stop()
 
 
@@ -180,5 +180,5 @@ def test_walk_frames_are_loaded_and_rendered_in_both_directions_at_three_sizes()
         assert runtime.snapshot() == before
     finally:
         preview.close()
-        window.close()
+        window.shutdown()
         runtime.stop()

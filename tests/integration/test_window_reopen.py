@@ -27,10 +27,12 @@ def _wait_until(predicate, timeout=2.0):
     (False, True, True), (True, True, True),
     (False, False, True), (False, True, False),
 ])
-def test_reopen_resumes_same_session_and_preserves_controls(paused, activity, visible):
+def test_reopen_resumes_same_session_and_preserves_controls(paused, activity, visible, monkeypatch):
     app = QApplication.instance() or QApplication([])
     runtime = AppRuntime.start(seed=42, provider=DemoActivityProvider())
     window = build_main_window(runtime, tick_interval_ms=25)
+    monkeypatch.setattr(QSystemTrayIcon, "isSystemTrayAvailable", staticmethod(lambda: True))
+    attach_tray(app, window, runtime)
     try:
         window.show()
         _wait_until(lambda: runtime.snapshot().world_time > 0)
@@ -43,7 +45,11 @@ def test_reopen_resumes_same_session_and_preserves_controls(paused, activity, vi
             window.close()
             before = runtime.snapshot().world_time
             QTest.qWait(60)
-            assert runtime.snapshot().world_time == before
+            assert window.timer.isActive()
+            if paused:
+                assert runtime.snapshot().world_time == before
+            else:
+                _wait_until(lambda: runtime.snapshot().world_time > before)
             window.showNormal()
             assert window.timer.isActive()
             assert window.timer.interval() == 25
@@ -62,7 +68,7 @@ def test_reopen_resumes_same_session_and_preserves_controls(paused, activity, vi
             _wait_until(lambda: runtime.snapshot().world_time > before)
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
         window.deleteLater()
         app.processEvents()
 
@@ -90,7 +96,7 @@ def test_all_tray_reopen_entries_restart_world(entry, monkeypatch):
     finally:
         tray.hide()
         runtime.stop()
-        window.close()
+        window.shutdown()
         window.deleteLater()
         app.processEvents()
 
@@ -114,29 +120,33 @@ def test_reopen_does_not_restart_stopped_or_completed_session(completed):
         assert runtime.snapshot().world_time == before
         assert not window.world_tab.preview.animation_timer.isActive()
     finally:
-        window.close()
+        window.shutdown()
         window.deleteLater()
         app.processEvents()
 
 
-def test_reopen_does_not_reopen_cancelled_diagnostic_log(tmp_path):
+def test_tray_reopen_keeps_diagnostic_log_running(tmp_path, monkeypatch):
     app = QApplication.instance() or QApplication([])
     runtime = AppRuntime.start(seed=42, provider=DemoActivityProvider())
     log = tmp_path / "stability.jsonl"
     window = build_main_window(runtime, duration_seconds=100, tick_interval_ms=25, stability_log=log)
+    monkeypatch.setattr(QSystemTrayIcon, "isSystemTrayAvailable", staticmethod(lambda: True))
+    attach_tray(app, window, runtime)
     try:
         window.show()
         _wait_until(lambda: runtime.snapshot().world_time > 0)
         window.close()
         contents = log.read_bytes()
-        assert json.loads(contents.decode().splitlines()[-1])["event"] == "cancelled"
+        assert not window._stability_logger.closed
+        assert json.loads(contents.decode().splitlines()[-1])["event"] == "tick"
         before = runtime.snapshot().world_time
         window.showNormal()
         _wait_until(lambda: runtime.snapshot().world_time > before)
-        assert log.read_bytes() == contents
+        assert len(log.read_bytes()) > len(contents)
+        assert not any(json.loads(line)["event"] == "cancelled" for line in log.read_text(encoding="utf-8").splitlines())
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
         window.deleteLater()
         app.processEvents()
 
@@ -155,6 +165,6 @@ def test_hide_show_preserves_running_timer():
         assert window.timer.timerId() == timer_id
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
         window.deleteLater()
         app.processEvents()

@@ -22,14 +22,16 @@ def build_main_window(
     tick_interval_ms: int = 1000,
     stability_log: Path | None = None,
     on_stability_complete: Callable[[], None] | None = None,
+    on_exit: Callable[[], None] | None = None,
 ):
-    from PySide6.QtCore import QElapsedTimer, QRect, Qt, QTimer
+    from PySide6.QtCore import QElapsedTimer, QEvent, QRect, Qt, QTimer
     from PySide6.QtGui import QColor, QImage, QPainter, QPixmap, QPixmapCache
     from miniatured_world.app.lab_layout import DEFAULT_LAYOUT
     from miniatured_world.app.lab_paint import draw_lab_scene, load_props
     from miniatured_world.app.lab_hands import load_hand_assets
     from miniatured_world.app.hand_motion import motion_data, motion_clip
     from PySide6.QtWidgets import (
+        QApplication,
         QCheckBox,
         QComboBox,
         QFormLayout,
@@ -48,6 +50,7 @@ def build_main_window(
         QSlider,
         QSpinBox,
         QStyle,
+        QSystemTrayIcon,
         QTabWidget,
         QToolButton,
         QVBoxLayout,
@@ -165,9 +168,10 @@ def build_main_window(
             self._value.setText(str(value))
 
     class _WorldTab(QWidget):
-        def __init__(self, runtime: AppRuntime) -> None:
+        def __init__(self, runtime: AppRuntime, request_exit: Callable[[], bool]) -> None:
             super().__init__()
             self._runtime = runtime
+            self._request_exit = request_exit
             self.preview = _WorldPreviewWidget()
             self.tendency = _InfoPill("ラボ傾向")
             self.traits = _InfoPill("特性")
@@ -248,7 +252,10 @@ def build_main_window(
 
         def _handle_button(self, button: QToolButton) -> None:
             command = button.property("runtime_command")
-            self._runtime.handle(command)
+            if command == RuntimeCommand.EXIT:
+                self._request_exit()
+            else:
+                self._runtime.handle(command)
 
     class _SettingsTab(QWidget):
         def __init__(self, settings: Settings, runtime: AppRuntime, on_delete: Callable[[str], None]) -> None:
@@ -291,6 +298,10 @@ def build_main_window(
         def __init__(self, runtime: AppRuntime) -> None:
             super().__init__()
             self.runtime = runtime
+            self._shutting_down = False
+            self._quit_requested = False
+            self._hidden_to_tray = False
+            self._exit_dialog = None
             self._requested_tick_ms = tick_interval_ms
             self._tick_interval_ms = runtime.service.effective_tick_ms(tick_interval_ms)
             self._stability_elapsed_ms = 0
@@ -318,7 +329,7 @@ def build_main_window(
             self.setMinimumSize(900, 620)
 
             self.tabs = QTabWidget()
-            self.world_tab = _WorldTab(runtime)
+            self.world_tab = _WorldTab(runtime, self.request_exit)
             self.settings_tab = _SettingsTab(runtime.service.settings, runtime, self._delete_saved_data)
             self.discovery_tab = _DiscoveryTab()
             self.tabs.addTab(self.world_tab, "ラボ")
@@ -352,6 +363,8 @@ def build_main_window(
                 self._stability_logger.start(snapshot)
 
         def advance(self) -> None:
+            if self._shutting_down:
+                return
             try:
                 elapsed = self._tick_interval_ms
                 snapshot = self.runtime.tick(elapsed_ms=elapsed)
@@ -364,8 +377,8 @@ def build_main_window(
                     self._complete_stability_run(snapshot)
                     return
                 if not snapshot.running:
-                    self._close_stability_log(cancelled=False)
-                    self.close()
+                    self.shutdown()
+                    self._quit_application()
             except BaseException as error:
                 if self._stability_logger is not None:
                     self._stability_logger.error(error)
@@ -373,6 +386,10 @@ def build_main_window(
                 raise
 
         def refresh(self, snapshot: WorldSnapshot) -> None:
+            if self._shutting_down:
+                return
+            if self._hidden_to_tray and not self._tray_available():
+                self.showNormal()
             interval = self.runtime.service.effective_tick_ms(self._requested_tick_ms)
             if interval != self._tick_interval_ms:
                 self._tick_interval_ms = interval
@@ -389,6 +406,7 @@ def build_main_window(
 
         def showEvent(self, event) -> None:  # noqa: N802
             super().showEvent(event)
+            self._hidden_to_tray = False
             self.world_tab.refresh(self.runtime.snapshot())
             # 再表示は同じセッションを再開する。終了済みの実行は復活させない。
             timer = getattr(self, "timer", None)
@@ -506,17 +524,104 @@ def build_main_window(
             dialog.exec()
             dialog.deleteLater()
 
-        def closeEvent(self, event) -> None:  # noqa: N802
+        def _tray_available(self) -> bool:
+            tray = getattr(self, "tray", None)
+            return bool(tray is not None and tray.isVisible() and QSystemTrayIcon.isSystemTrayAvailable())
+
+        def eventFilter(self, watched, event) -> bool:  # noqa: N802
+            # QApplication.quitはaboutToQuitより先にウィンドウを閉じる。
+            # そのcloseを利用者操作と誤認して確認を出さない。
+            if watched is QApplication.instance() and event.type() == QEvent.Type.Quit:
+                self.shutdown()
+            return super().eventFilter(watched, event)
+
+        def hide_to_tray(self) -> None:
+            if self._shutting_down:
+                return
+            if self._tray_available():
+                self._hidden_to_tray = True
+                self.hide()
+            else:
+                self.showNormal()
+
+        def request_exit(self) -> bool:
+            if self._shutting_down:
+                return True
+            if self._exit_dialog is not None:
+                self._exit_dialog.raise_()
+                self._exit_dialog.activateWindow()
+                return False
+            if self.runtime.state.running and self.runtime.service.settings.general.confirm_on_exit:
+                dialog = QMessageBox(self)
+                self._exit_dialog = dialog
+                dialog.setObjectName("exit_confirmation")
+                dialog.setWindowTitle("アプリケーションの終了")
+                dialog.setIcon(QMessageBox.Icon.Question)
+                dialog.setText("小さなラボラトリーを終了しますか？\n現在のラボは終了します。設定と発見は保存設定に従って保持されます。")
+                confirm = dialog.addButton("終了する", QMessageBox.ButtonRole.AcceptRole)
+                cancel = dialog.addButton("キャンセル", QMessageBox.ButtonRole.RejectRole)
+                dialog.setDefaultButton(cancel)
+                dialog.setEscapeButton(cancel)
+                def finish_confirmation(_result):
+                    accepted = dialog.clickedButton() == confirm
+                    self._exit_dialog = None
+                    dialog.deleteLater()
+                    if accepted and not self._shutting_down:
+                        self.shutdown()
+                        self._quit_application()
+                dialog.finished.connect(finish_confirmation)
+                dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+                # 非同期表示で、支援技術のボタン呼出し中にネストした
+                # イベントループを保持して確認画面への操作を塞がない。
+                dialog.show()
+                return False
+            self.shutdown()
+            self._quit_application()
+            return True
+
+        def _quit_application(self) -> None:
+            if self._quit_requested:
+                return
+            self._quit_requested = True
+            callback = on_exit or QApplication.instance().quit
+            callback()
+
+        def shutdown(self) -> None:
+            """確認を伴わない冪等な後始末。Qtの終了通知とテストにも使用する。"""
+            if self._shutting_down:
+                return
+            self._shutting_down = True
+            if self._exit_dialog is not None:
+                self._exit_dialog.reject()
+            self.runtime.stop()
             self.timer.stop()
             self.world_tab.preview.animation_timer.stop()
             self._close_stability_log(cancelled=True)
-            super().closeEvent(event)
+            tray = getattr(self, "tray", None)
+            if tray is not None:
+                tray.hide()
+            self.close()
+
+        def closeEvent(self, event) -> None:  # noqa: N802
+            if self._shutting_down:
+                event.accept()
+            elif not self.runtime.state.running or QApplication.instance().isSavingSession():
+                self.shutdown()
+                self._quit_application()
+                event.accept()
+            elif self.runtime.service.settings.general.minimize_to_tray and self._tray_available():
+                self.hide_to_tray()
+                event.ignore()
+            elif self.request_exit():
+                event.accept()
+            else:
+                event.ignore()
 
         def _complete_stability_run(self, snapshot: WorldSnapshot) -> None:
             if self._stability_completed:
                 return
             self._stability_completed = True
-            self.runtime.stop()
+            self.shutdown()
             if self._stability_logger is not None:
                 self._stability_logger.completed(
                     self._stability_frame,
@@ -527,7 +632,7 @@ def build_main_window(
             if self._on_stability_complete is not None:
                 self._on_stability_complete()
             else:
-                self.close()
+                self._quit_application()
 
         def _close_stability_log(self, *, cancelled: bool) -> None:
             if self._stability_logger is None or self._stability_logger.closed or self._stability_completed:

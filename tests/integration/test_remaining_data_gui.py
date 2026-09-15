@@ -59,7 +59,7 @@ def test_cancel_preserves_files_catalog_and_runtime(tmp_path, target):
         assert not window._stability_logger.closed
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_all_deletes_known_data_stops_logging_and_preserves_unknown_files(tmp_path):
@@ -83,7 +83,7 @@ def test_all_deletes_known_data_stops_logging_and_preserves_unknown_files(tmp_pa
         assert unknown.read_bytes() == b"keep"
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_unregistered_legacy_log_can_be_added_to_all_with_confirmation(tmp_path):
@@ -103,7 +103,7 @@ def test_unregistered_legacy_log_can_be_added_to_all_with_confirmation(tmp_path)
         assert not old.exists() and not (tmp_path / "active.jsonl").exists()
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_selected_log_cancel_does_not_add_it_to_catalog(tmp_path):
@@ -119,7 +119,7 @@ def test_selected_log_cancel_does_not_add_it_to_catalog(tmp_path):
         assert old.exists() and (tmp_path / "data/log-index.json").read_bytes() == before
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def asset_hashes(preview):
@@ -142,7 +142,7 @@ def test_cache_reload_preserves_assets_world_and_animation(tmp_path):
         assert runtime.service.simulation.session.state == state and vars(preview.animation) == animation
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_cache_reload_failure_keeps_existing_assets(tmp_path):
@@ -157,7 +157,7 @@ def test_cache_reload_failure_keeps_existing_assets(tmp_path):
         assert asset_hashes(preview) == before
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_all_with_unreadable_catalog_reports_partial_completion(tmp_path):
@@ -175,7 +175,7 @@ def test_all_with_unreadable_catalog_reports_partial_completion(tmp_path):
         assert "private index" not in window.storage_notice.text()
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_unrecognized_selected_file_is_kept_and_reported(tmp_path):
@@ -190,4 +190,4 @@ def test_unrecognized_selected_file_is_kept_and_reported(tmp_path):
         assert (tmp_path / "active.jsonl").exists() and not window._stability_logger.closed
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()

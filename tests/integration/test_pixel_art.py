@@ -69,5 +69,5 @@ def test_every_workflow_stage_keeps_a_common_two_pixel_grid() -> None:
             assert bytes(image.constBits()) == bytes(restored.constBits()), phase
             preview.animation.advance(duration - duration // 2)
     finally:
-        window.close()
+        window.shutdown()
         runtime.stop()

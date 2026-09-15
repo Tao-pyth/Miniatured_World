@@ -37,10 +37,13 @@ def run_qt_app(
         tick_interval_ms=tick_interval_ms,
         stability_log=stability_log,
         on_stability_complete=app.quit,
+        on_exit=app.quit,
     )
     if provider is None and activity_provider not in ("demo", "none") and runtime.service.settings.activity_notice == "legacy":
         attach_activity_notice(window, runtime)
     window.tray = attach_tray(app, window, runtime)
+    app.aboutToQuit.connect(window.shutdown)
+    app.installEventFilter(window)
     session_monitor = create_session_monitor(runtime, window.refresh)
     if session_monitor is not None:
         app.aboutToQuit.connect(session_monitor.stop)
@@ -48,6 +51,8 @@ def run_qt_app(
     try:
         return app.exec()
     finally:
-        runtime.stop()
+        window.shutdown()
+        app.aboutToQuit.disconnect(window.shutdown)
+        app.removeEventFilter(window)
         if session_monitor is not None:
             session_monitor.stop()

@@ -46,5 +46,5 @@ def test_settings_and_pause_button_hold_backend_until_all_controls_resume():
         runtime.stop()
         assert backend._suspended
     finally:
-        window.close()
+        window.shutdown()
         app.processEvents()
