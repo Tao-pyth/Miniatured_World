@@ -28,7 +28,7 @@ def test_history_visible_but_not_reintroduced_into_world(tmp_path):
         assert "historic-only" not in runtime.snapshot().discoveries
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_write_notice_appears_and_clears_without_modal(tmp_path):
@@ -51,7 +51,7 @@ def test_write_notice_appears_and_clears_without_modal(tmp_path):
         assert window.storage_notice.isHidden()
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_new_discovery_visible_when_old_file_is_protected(tmp_path):
@@ -68,4 +68,4 @@ def test_new_discovery_visible_when_old_file_is_protected(tmp_path):
         assert "保存されません" in window.storage_notice.text()
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()

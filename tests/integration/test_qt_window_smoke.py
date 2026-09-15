@@ -33,7 +33,7 @@ def test_main_window_contains_lab_settings_and_discovery_tabs() -> None:
         assert [tabs.tabText(index) for index in range(tabs.count())] == ["ラボ", "設定", "発見"]
         assert window.windowTitle() == "小さなラボラトリー"
     finally:
-        window.close()
+        window.shutdown()
 
 
 def test_main_window_refreshes_from_snapshot_and_keeps_privacy_toggles_safe() -> None:
@@ -52,7 +52,7 @@ def test_main_window_refreshes_from_snapshot_and_keeps_privacy_toggles_safe() ->
         assert window.world_tab.provider._value.text() == "デモ"
         assert window.world_tab.tendency._title.text() == "ラボ傾向"
     finally:
-        window.close()
+        window.shutdown()
 
 
 def test_settings_controls_update_runtime_and_persist(tmp_path) -> None:
@@ -69,7 +69,7 @@ def test_settings_controls_update_runtime_and_persist(tmp_path) -> None:
         assert runtime.service.store is not None
         assert runtime.service.store.load_settings().activity.enabled is False
     finally:
-        window.close()
+        window.shutdown()
 
 
 def test_display_settings_apply_window_attributes(tmp_path, monkeypatch) -> None:
@@ -101,7 +101,7 @@ def test_display_settings_apply_window_attributes(tmp_path, monkeypatch) -> None
         assert window.testAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents) is False
         assert native_calls[-1] is False
     finally:
-        window.close()
+        window.shutdown()
 
 
 def test_display_opacity_is_clamped_to_safe_range(tmp_path) -> None:
@@ -118,7 +118,7 @@ def test_display_opacity_is_clamped_to_safe_range(tmp_path) -> None:
         window.refresh(runtime.snapshot())
         assert round(window.windowOpacity(), 2) == 0.2
     finally:
-        window.close()
+        window.shutdown()
 
 
 def test_display_settings_controls_update_runtime_and_window(tmp_path) -> None:
@@ -149,7 +149,7 @@ def test_display_settings_controls_update_runtime_and_window(tmp_path) -> None:
         assert bool(window.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
         assert round(window.windowOpacity(), 2) == 0.7
     finally:
-        window.close()
+        window.shutdown()
 
 
 
@@ -167,7 +167,7 @@ def test_window_controls_use_runtime_commands_without_closing_window_on_hide() -
         assert window.world_tab.preview.isHidden() is True
         assert window.world_tab.visibility_button.text() == "ラボ表示"
     finally:
-        window.close()
+        window.shutdown()
 
 
 def test_gui_stability_log_completes_without_exposing_private_fields(tmp_path) -> None:
@@ -207,4 +207,4 @@ def test_gui_stability_log_completes_without_exposing_private_fields(tmp_path) -
         }
         assert all(term not in serialized for term in forbidden)
     finally:
-        window.close()
+        window.shutdown()

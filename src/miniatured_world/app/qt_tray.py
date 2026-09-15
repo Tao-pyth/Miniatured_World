@@ -25,7 +25,7 @@ def attach_tray(app, window, runtime: AppRuntime):
 
     actions = {
         "show": add_action("ウィンドウを表示", window.showNormal),
-        "hide": add_action("ウィンドウを隠す", window.hide),
+        "hide": add_action("ウィンドウを隠す", window.hide_to_tray),
     }
     menu.addSeparator()
     actions["pause"] = add_action("一時停止", lambda: _handle(runtime, RuntimeCommand.PAUSE, window))
@@ -41,7 +41,7 @@ def attach_tray(app, window, runtime: AppRuntime):
         # 既存のクリック透過設定を変えず、説明を閉じられる入口を残す。
         actions["activity_notice_close"] = add_action("活動取得の説明を閉じる", window.acknowledge_activity_notice)
     menu.addSeparator()
-    actions["exit"] = add_action("終了", lambda: _exit(app, runtime, window))
+    actions["exit"] = add_action("終了", window.request_exit)
 
     tray.setContextMenu(menu)
     tray.activated.connect(
@@ -50,6 +50,7 @@ def attach_tray(app, window, runtime: AppRuntime):
         else None
     )
     tray.show()
+    window.tray = tray
     tray._miniatured_world_actions = actions
     return tray
 
@@ -65,9 +66,3 @@ def _show_tab(window, label: str) -> None:
         if window.tabs.tabText(index) == label:
             window.tabs.setCurrentIndex(index)
             break
-
-
-def _exit(app, runtime: AppRuntime, window) -> None:
-    runtime.handle(RuntimeCommand.EXIT)
-    window.close()
-    app.quit()

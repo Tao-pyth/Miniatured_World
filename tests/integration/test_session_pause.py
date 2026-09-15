@@ -6,11 +6,12 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6")
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QSystemTrayIcon
 
 from miniatured_world.activity import DemoActivityProvider
 from miniatured_world.app.qt_session import create_session_monitor, WM_WTSSESSION_CHANGE, WM_POWERBROADCAST
 from miniatured_world.app.qt_widgets import build_main_window
+from miniatured_world.app.qt_tray import attach_tray
 from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.app.windows_session import SessionState
 
@@ -45,7 +46,7 @@ def gui():
     yield runtime, window, monitor, api
     monitor.stop()
     runtime.stop()
-    window.close()
+    window.shutdown()
     window.deleteLater()
     app.processEvents()
 
@@ -88,9 +89,11 @@ def test_other_session_ignored_and_sleep_lock_overlap(gui):
     assert not runtime.snapshot().system_paused
 
 
-def test_monitor_survives_window_close_hide_and_display_mode(gui):
+def test_monitor_survives_window_close_hide_and_display_mode(gui, monkeypatch):
     runtime, window, monitor, api = gui
     hwnd = monitor._handle
+    monkeypatch.setattr(QSystemTrayIcon, "isSystemTrayAvailable", staticmethod(lambda: True))
+    attach_tray(QApplication.instance(), window, runtime)
     window.close()
     monitor.handle_message(WM_WTSSESSION_CHANGE, 7, 7)
     window.showNormal()

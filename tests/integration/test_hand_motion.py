@@ -44,7 +44,7 @@ def lab():
     yield app, runtime, window, preview, start
     assert runtime.snapshot() == original
     preview.close()
-    window.close()
+    window.shutdown()
     runtime.stop()
 
 

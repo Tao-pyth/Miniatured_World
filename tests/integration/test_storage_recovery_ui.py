@@ -35,7 +35,7 @@ def test_recovery_notice_is_nonmodal_and_contains_no_file_contents(tmp_path, nam
         assert all((tmp_path / name).read_bytes() == b'{"private-file-content":' for name in names)
     finally:
         runtime.stop()
-        window.close()
+        window.shutdown()
 
 
 def test_corrupt_settings_require_activity_choice_before_native_provider(tmp_path):

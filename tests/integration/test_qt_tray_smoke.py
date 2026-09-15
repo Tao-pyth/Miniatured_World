@@ -36,4 +36,4 @@ def test_tray_attachment_is_safe_when_tray_is_unavailable() -> None:
         else:
             assert tray is None
     finally:
-        window.close()
+        window.shutdown()

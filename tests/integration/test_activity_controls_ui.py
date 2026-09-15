@@ -31,4 +31,4 @@ def test_actual_controls_apply_and_survive_restart(tmp_path):
         assert restarted.service.settings.activity.reflection_strength == 0
         assert restarted.tick().activity_intensity == 0
     finally:
-        runtime.stop(); window.close()
+        runtime.stop(); window.shutdown()

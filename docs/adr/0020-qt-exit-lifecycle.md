@@ -1,0 +1,17 @@
+# ADR 0020: Qtの終了要求と後始末を統一する
+
+## 状況
+
+confirm_on_exit/minimize_to_trayが設定されても実作用がなく、ラボ終了はRuntimeを止めてウィンドウを閉じるだけだった。QApplicationは最後のウィンドウ閉鎖で終了しない設定のため、トレイ終了と違ってプロセスが残り得た。
+
+## 決定
+
+mainwindow.request_exitに利用者確認をまとめ、shutdownを無対話・冪等の後始末にする。Runtime.stopの最終再試行一度とwriterのcloseを維持し、Qtの実終了要求は一度だけ呼ぶ。closeEventは既存の最小化設定と実tray利用可能性を確認する。隠すだけではWorld更新やログを閉じず、既存previewの非表示処理で描画を止める。
+
+QApplication.quitはaboutToQuitの前にウィンドウを閉じるため、当該applicationのQuitイベントを先に受けてshutdownする。aboutToQuit/finallyにも後始末を接続し、既存durationとOS終了は利用者確認を介さない。isSavingSessionでOSセッション終了を識別する。イベントフィルターは当該Qtアプリの終了だけを扱い、他アプリの情報やRaw Inputを取得しない。
+
+## 参照と限界
+
+[Qt QGuiApplication isSavingSession](https://doc.qt.io/qt-6/qguiapplication.html#isSavingSession) と実Qtイベントループ試験を根拠にする。OS強制終了/電源断の保存保証は追加しない。自動起動・表示位置等の設定形式変更は別契約で扱う。
+
+確認画面は非同期のapplication modal表示にする。Windows UI AutomationからQToolButtonを呼ぶ際、同期execで待つと後続の確認操作が待ち続けることを再現した。アプリ全体の終了イベントフィルターを外しても再現し、非同期表示に変更すると取消・確定・実プロセス終了が成功した。finishedで結果を処理し、確認前にRuntimeを止めない。
