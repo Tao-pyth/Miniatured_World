@@ -9,6 +9,7 @@ from miniatured_world.app.commands import RuntimeCommand
 from miniatured_world.activity.models import ActivitySelection
 from miniatured_world.app.service import MiniaturedWorldService
 from miniatured_world.app.snapshot import WorldSnapshot
+from miniatured_world.app.startup import StartupManager, StartupStatus
 
 
 @dataclass(slots=True)
@@ -30,8 +31,10 @@ class AppRuntime:
     _activity_suspended: bool | None = field(default=None, init=False)
     _activity_selection: ActivitySelection | None = field(default=None, init=False)
     _activity_window_ms: int | None = field(default=None, init=False)
+    startup: StartupManager = field(init=False)
 
     def __post_init__(self) -> None:
+        self.startup = StartupManager(self.service.store.root if self.service.store else None)
         self._sync_activity()
 
     def attach_provider(self, provider: ActivityProvider) -> None:
@@ -141,8 +144,25 @@ class AppRuntime:
         if section == "sound" and field_name == "enabled":
             self.state.muted = not bool(value)
 
+    def set_launch_on_login(self, enabled: bool) -> StartupStatus:
+        status = self.startup.set_enabled(enabled)
+        if status.registered is not None and self.startup.root is not None:
+            self.service.update_setting("general", "launch_on_login", status.registered)
+        return status
+
     def delete_saved_data(self, target: str) -> dict[str, bool]:
-        result = self.service.delete_saved_data(target)
+        result = {}
+        if self.service.store is not None and target in ("settings", "settings_and_discovery") and self.startup.registry is not None:
+            before = self.startup.inspect()
+            removed = self.startup.set_enabled(False)
+            if before.registered is not False or not removed.succeeded:
+                result["startup"] = removed.succeeded
+            if not removed.succeeded:
+                result["settings.json"] = False
+                if target == "settings_and_discovery":
+                    result.update(self.service.delete_saved_data("discovery"))
+                return result
+        result.update(self.service.delete_saved_data(target))
         if result.get("settings.json"):
             self.state.activity_collection_enabled = False
             self.state.muted = not self.service.settings.sound.enabled
