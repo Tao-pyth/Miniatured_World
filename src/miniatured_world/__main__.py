@@ -67,6 +67,9 @@ def main(argv: list[str] | None = None) -> int:
 
     provider = create_activity_provider(args.activity_provider)
     runtime = AppRuntime.start(seed=seed, provider=provider, data_root=data_root)
+    if runtime.service.store:
+        for issue in runtime.service.store.issues:
+            print(issue.message, file=sys.stderr)
     if args.stability_log:
         duration_seconds = args.duration_seconds
         if duration_seconds is None:
