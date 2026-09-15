@@ -1,0 +1,13 @@
+# ADR 0016: 活動種類の除外と反映量
+
+2026-09-15 / 採用: v0.9.14
+
+個別ON/OFFと反映量が保存されても実作用へ届いていなかった。永続設定から独立したActivitySelectionをRuntimeがProviderとAggregatorへ伝え、直接Serviceを使う経路も集約側で除外する。変更時は集約と対応Providerの待機イベント、表示用の前フレームを破棄し、再ONで持ち越さない。Deferredは生成前の選択を保持し、最初のpoll前に適用する。既存の全体OFF・手動/OS休止を解除しない。
+
+Windowsは全種類OFFでRaw APIへ到達しない。キーボードまたはマウス系全体をOFFにした場合はRID_HEADERで種類だけ判定し、対象の本文を取得しない。マウス移動/クリック/スクロールは共通パケット内の有効な項目だけをカテゴリ化する。OSの入力登録は維持し、通知の配達自体を停止する保証とは区別する。共有マウスパケットの無効項目も保存・変換しない。
+
+根拠: [Microsoft GetRawInputData](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getrawinputdata)。RID_HEADERとRID_INPUTを分ける。ヘッダー取得失敗は本文へ進まない。
+
+反映量は正規化ActivityFrameをquietへ0〜1で補間する。activeの6特徴とidle_ratioの1との差に適用し、session_durationは変えない。1は従来、0は自然進行。Idleイベント自体はburstiness/continuityへ数えず、入力のない状態に活動が残らないようにする。反映量0は取得停止ではない。
+
+集約間隔は別契約。現行のローリング窓へ設定を接続するだけでは同じ活動を繰り返し反映し、タイマー頻度だけ変えるとWorld生成量が変わる。次のOODAで消費周期・World時間とまとめて扱い、今回の完了に含めない。

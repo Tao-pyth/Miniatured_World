@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from miniatured_world.activity.models import (
     ActivityFrame,
+    ActivitySelection,
     ActivitySource,
     ActivityType,
     PointerCategory,
@@ -15,11 +16,12 @@ from miniatured_world.activity.models import (
 @dataclass(slots=True)
 class ActivityAggregator:
     frame_window_ms: int = 1000
+    selection: ActivitySelection = field(default_factory=ActivitySelection)
     _events: list[SanitizedActivityEvent] = field(default_factory=list)
     _session_start_ms: int | None = None
 
     def add(self, event: SanitizedActivityEvent) -> None:
-        if event.source == ActivitySource.DIRECT:
+        if event.source == ActivitySource.DIRECT or not self.selection.allows(event):
             return
         self._events.append(event)
         if self._session_start_ms is None:
@@ -65,8 +67,9 @@ class ActivityAggregator:
         pointer_activity = min(1.0, pointer_magnitude / 5.0)
         click_activity = min(1.0, by_pointer[PointerCategory.CLICK.value] / 8.0)
         scroll_activity = min(1.0, scroll_magnitude / 4.0)
-        burstiness = self._burstiness(window_events)
-        continuity = min(1.0, self._active_bucket_count(window_events, start_ms) / 5.0)
+        active_events = [event for event in window_events if event.type != ActivityType.IDLE]
+        burstiness = self._burstiness(active_events)
+        continuity = min(1.0, self._active_bucket_count(active_events, start_ms) / 5.0)
 
         active = min(1.0, active_event_count / 30.0 + pointer_activity * 0.25)
         idle_ratio = max(0.0, min(1.0, max(idle_magnitude, 1.0 - active)))

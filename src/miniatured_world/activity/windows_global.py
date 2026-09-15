@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from miniatured_world.activity.models import SanitizedActivityEvent
+from miniatured_world.activity.models import ActivitySelection, SanitizedActivityEvent
 from miniatured_world.activity.privacy import PrivacyFilter
 from miniatured_world.activity.provider import ActivityProviderStatus
 
@@ -120,6 +120,11 @@ class WindowsGlobalActivityProvider:
             return ()
         return tuple(self.backend.poll(now_ms, self.privacy_filter))
 
+    def set_selection(self, selection: ActivitySelection) -> None:
+        setter = getattr(self.backend, "set_selection", None)
+        if setter is not None:
+            setter(selection)
+
     def set_suspended(self, suspended: bool) -> None:
         setter = getattr(self.backend, "set_suspended", None)
         if setter is not None:
@@ -146,6 +151,7 @@ class _UnavailableWindowsBackend:
 class _WindowsRawInputBackend:
     def __init__(self) -> None:
         self._suspended = False
+        self._selection = ActivitySelection()
         self._queue: list[SanitizedActivityEvent] = []
         self._poll_timestamp_ms = 0
         self._privacy_filter = PrivacyFilter()
@@ -170,8 +176,9 @@ class _WindowsRawInputBackend:
             name="windows-global",
             display_name="Windows実活動",
             available=self._available,
-            active=self._available and not self._suspended,
-            detail=self._detail,
+            active=self._available and not self._suspended and getattr(self, "_selection", ActivitySelection()).any_enabled,
+            detail=("取得する種類がすべてOFFです。種類をONにすると再開します。"
+                    if not getattr(self, "_selection", ActivitySelection()).any_enabled else self._detail),
         )
 
     def poll(self, now_ms: int, privacy_filter: PrivacyFilter) -> Iterable[SanitizedActivityEvent]:
@@ -192,6 +199,14 @@ class _WindowsRawInputBackend:
         # World側の時計も休止しているため、直近の仮想時刻を維持する。
         # 0へ戻すと復帰直後の入力がOS時計で刻まれ、別の時間軸になる。
         self._suspended = suspended
+
+    def set_selection(self, selection: ActivitySelection) -> None:
+        previous = getattr(self, "_selection", ActivitySelection())
+        self._selection = selection
+        if selection != previous:
+            suspended = self._suspended
+            self.set_suspended(True)
+            self._suspended = suspended
 
     def _setup_window(self) -> None:
         user32 = ctypes.windll.user32
@@ -323,7 +338,8 @@ class _WindowsRawInputBackend:
         return int(ctypes.windll.user32.DefWindowProcW(hwnd, msg, wparam, lparam))
 
     def _handle_raw_input(self, lparam: int) -> None:
-        if self._suspended:
+        selection = getattr(self, "_selection", ActivitySelection())
+        if self._suspended or not selection.any_enabled:
             return
         RID_INPUT = 0x10000003
         RIM_TYPEMOUSE = 0
@@ -332,6 +348,18 @@ class _WindowsRawInputBackend:
         size = ctypes.c_uint(0)
         header_size = ctypes.sizeof(_RAWINPUTHEADER)
         _configure_raw_input_api(user32)
+        if not selection.keyboard or not selection.any_pointer:
+            header = _RAWINPUTHEADER()
+            header_bytes = ctypes.c_uint(header_size)
+            copied = user32.GetRawInputData(
+                lparam, 0x10000005, ctypes.byref(header), ctypes.byref(header_bytes), header_size,
+            )
+            if copied != header_size:
+                return
+            if header.dwType == RIM_TYPEKEYBOARD and not selection.keyboard:
+                return
+            if header.dwType == RIM_TYPEMOUSE and not selection.any_pointer:
+                return
         user32.GetRawInputData(lparam, RID_INPUT, None, ctypes.byref(size), header_size)
         if size.value == 0:
             return
@@ -355,6 +383,8 @@ class _WindowsRawInputBackend:
         timestamp_ms: int,
         privacy_filter: PrivacyFilter,
     ) -> SanitizedActivityEvent | None:
+        if not getattr(self, "_selection", ActivitySelection()).keyboard:
+            return None
         WM_KEYDOWN = 0x0100
         WM_SYSKEYDOWN = 0x0104
         if int(keyboard.Message) not in {WM_KEYDOWN, WM_SYSKEYDOWN}:
@@ -369,18 +399,21 @@ class _WindowsRawInputBackend:
         privacy_filter: PrivacyFilter,
     ) -> tuple[SanitizedActivityEvent, ...]:
         events: list[SanitizedActivityEvent] = []
-        delta_x = float(mouse.lLastX)
-        delta_y = float(mouse.lLastY)
-        if delta_x or delta_y:
-            events.append(privacy_filter.pointer_move(delta_x, delta_y, timestamp_ms))
+        selection = getattr(self, "_selection", ActivitySelection())
+        if selection.movement:
+            delta_x = float(mouse.lLastX)
+            delta_y = float(mouse.lLastY)
+            if delta_x or delta_y:
+                events.append(privacy_filter.pointer_move(delta_x, delta_y, timestamp_ms))
 
-        flags = int(mouse.button_union.buttons.usButtonFlags)
-        button_data = int(mouse.button_union.buttons.usButtonData)
-        click_flags = {0x0001, 0x0004, 0x0010, 0x0040, 0x0100}
-        if any(flags & flag for flag in click_flags):
-            events.append(privacy_filter.pointer_click(timestamp_ms))
-        if flags & 0x0400 or flags & 0x0800:
-            events.append(privacy_filter.pointer_scroll(_signed_ushort(button_data), timestamp_ms))
+        if selection.click or selection.scroll:
+            flags = int(mouse.button_union.buttons.usButtonFlags)
+            click_flags = {0x0001, 0x0004, 0x0010, 0x0040, 0x0100}
+            if selection.click and any(flags & flag for flag in click_flags):
+                events.append(privacy_filter.pointer_click(timestamp_ms))
+            if selection.scroll and (flags & 0x0400 or flags & 0x0800):
+                button_data = int(mouse.button_union.buttons.usButtonData)
+                events.append(privacy_filter.pointer_scroll(_signed_ushort(button_data), timestamp_ms))
         return tuple(events)
 
     def _destroy_window(self) -> None:

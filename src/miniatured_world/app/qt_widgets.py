@@ -519,7 +519,7 @@ def build_main_window(
             "品質": "quality",
             "有効": "enabled",
             "キーボード": "keyboard",
-            "マウス": "mouse",
+            "マウス移動": "mouse",
             "クリック": "click",
             "スクロール": "scroll",
             "集約間隔ms": "frame_window_ms",
@@ -633,11 +633,13 @@ def build_main_window(
             [
                 ("有効", _check(settings.activity.enabled, on_change=runtime.set_activity_collection)),
                 ("キーボード", _check(settings.activity.keyboard_enabled, on_change=_setting(runtime, "activity", "keyboard_enabled"))),
-                ("マウス", _check(settings.activity.mouse_enabled, on_change=_setting(runtime, "activity", "mouse_enabled"))),
+                ("マウス移動", _check(settings.activity.mouse_enabled, on_change=_setting(runtime, "activity", "mouse_enabled"))),
                 ("クリック", _check(settings.activity.click_enabled, on_change=_setting(runtime, "activity", "click_enabled"))),
                 ("スクロール", _check(settings.activity.scroll_enabled, on_change=_setting(runtime, "activity", "scroll_enabled"))),
                 ("集約間隔ms", _spin(settings.activity.frame_window_ms, 100, 5000, 100, on_change=_setting(runtime, "activity", "frame_window_ms"))),
                 ("反映量", _slider(settings.activity.reflection_strength, on_change=_setting(runtime, "activity", "reflection_strength", lambda value: int(value) / 100.0))),
+                ("種類の選択", QLabel("4種類は独立して選べます。\nOFFにした種類はラボへ反映しません。")),
+                ("反映量の意味", QLabel("0では活動を反映せず、ラボは自然に進行します。\n取得を止める場合は「有効」をOFFにしてください。")),
             ],
         )
 

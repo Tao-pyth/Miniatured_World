@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from miniatured_world.activity import ActivityAggregator, PrivacyFilter
+from miniatured_world.activity.models import ActivitySelection
 from miniatured_world.persistence import DiscoveryManager, JsonStore, Settings, update_settings
 from miniatured_world.world import WorldSession, WorldSimulation
 
@@ -26,6 +27,19 @@ class MiniaturedWorldService:
     store: JsonStore | None = None
     discovery_manager: DiscoveryManager = field(default_factory=DiscoveryManager)
     now_ms: int = 0
+
+    def __post_init__(self) -> None:
+        self._apply_activity_selection()
+
+    def _apply_activity_selection(self) -> None:
+        activity = self.settings.activity
+        selection = ActivitySelection(
+            activity.keyboard_enabled, activity.mouse_enabled,
+            activity.click_enabled, activity.scroll_enabled,
+        )
+        if selection != self.aggregator.selection:
+            self.aggregator.discard_pending()
+            self.aggregator.selection = selection
 
     @classmethod
     def start(cls, seed: int, data_root: Path | None = None) -> "MiniaturedWorldService":
@@ -52,7 +66,7 @@ class MiniaturedWorldService:
 
     def step(self, elapsed_ms: int = 1000):
         self.now_ms += elapsed_ms
-        frame = self.aggregator.frame(self.now_ms)
+        frame = self.aggregator.frame(self.now_ms).with_strength(self.settings.activity.reflection_strength)
         self.simulation.step(frame)
         self._save_settings()
         self.discovery_manager.merge(
@@ -64,6 +78,7 @@ class MiniaturedWorldService:
 
     def update_settings(self, settings: Settings) -> None:
         self.settings = settings
+        self._apply_activity_selection()
         if self.store and not settings.data.save_discovery:
             self.store.cancel_pending_discovery()
         self._save_settings(force=True)
