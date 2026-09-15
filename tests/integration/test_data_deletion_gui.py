@@ -83,7 +83,8 @@ def test_ephemeral_disables_all_persistent_delete_actions():
     window = build_main_window(runtime)
     try:
         buttons = [b for b in window.findChildren(QPushButton) if b.objectName().startswith("delete_")]
-        assert len(buttons) == 3 and not any(b.isEnabled() for b in buttons)
+        assert len(buttons) == 7
+        assert all(b.isEnabled() == (b.objectName() == "delete_cache") for b in buttons)
     finally:
         runtime.stop()
         window.close()

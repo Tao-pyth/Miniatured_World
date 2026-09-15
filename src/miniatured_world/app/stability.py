@@ -13,6 +13,7 @@ from typing import Any
 
 from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.app.snapshot import WorldSnapshot
+from miniatured_world.persistence.log_registry import LogRegistry
 
 
 Clock = Callable[[], float]
@@ -46,6 +47,7 @@ class StabilityLogWriter:
         tick_interval_ms: int,
         realtime: bool,
         clock: Clock = time.monotonic,
+        registry: LogRegistry | None = None,
     ) -> None:
         self.log_path = log_path
         self.duration_seconds = duration_seconds
@@ -55,6 +57,7 @@ class StabilityLogWriter:
         self.started_at = clock()
         self._log = None
         self._closed = False
+        self._registry = registry
 
     def __enter__(self) -> "StabilityLogWriter":
         self.open()
@@ -72,9 +75,11 @@ class StabilityLogWriter:
     def close(self) -> None:
         if self._closed:
             return
-        if self._log is not None:
-            self._log.close()
-        self._closed = True
+        try:
+            if self._log is not None:
+                self._log.close()
+        finally:
+            self._closed = True
 
     @property
     def closed(self) -> bool:
@@ -84,6 +89,8 @@ class StabilityLogWriter:
         self._write(
             {
                 "event": "start",
+                "application": "miniatured-world",
+                "log_schema_version": 1,
                 "duration_seconds": self.duration_seconds,
                 "tick_interval_ms": self.tick_interval_ms,
                 "realtime": self.realtime,
@@ -91,6 +98,8 @@ class StabilityLogWriter:
                 "process": _process_metrics(),
             }
         )
+        if self._registry is not None and not self._closed:
+            self._registry.register(self.log_path, self.close)
 
     def tick(self, frame_index: int, snapshot: WorldSnapshot, summary: str, *, elapsed_ms: int | None = None) -> None:
         self._write(
@@ -174,6 +183,7 @@ def run_stability_check(
         tick_interval_ms=tick_interval_ms,
         realtime=realtime,
         clock=clock,
+        registry=runtime.service.log_registry,
     ) as stability_log:
         stability_log.start(snapshot)
         try:

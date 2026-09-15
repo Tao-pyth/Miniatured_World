@@ -2,6 +2,8 @@
 
 from dataclasses import fields
 import math
+import re
+from pathlib import Path
 
 from miniatured_world.persistence.settings import Settings
 
@@ -67,3 +69,20 @@ def validate_discovery(data: dict) -> None:
     discoveries = data.get("discoveries", [])
     if not isinstance(discoveries, list) or not all(isinstance(item, str) for item in discoveries):
         raise ValueError("不正な発見データ")
+
+
+def validate_log_index(data: dict) -> None:
+    validate_record(data, {"schema_version", "logs"})
+    entries = data.get("logs", [])
+    if not isinstance(entries, list) or len(entries) > 4096:
+        raise ValueError("不正なログ一覧")
+    seen = set()
+    for item in entries:
+        if not isinstance(item, dict) or set(item) != {"path", "sha256"}:
+            raise ValueError("不正なログ項目")
+        path, identity = item["path"], item["sha256"]
+        if not isinstance(path, str) or not path or "\0" in path or not Path(path).is_absolute() or path in seen:
+            raise ValueError("不正なログ保存先")
+        if not isinstance(identity, str) or re.fullmatch(r"[0-9a-f]{64}", identity) is None:
+            raise ValueError("不正なログ識別値")
+        seen.add(path)

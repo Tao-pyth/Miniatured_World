@@ -11,7 +11,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any
 from miniatured_world.persistence.validation import (
-    UnsupportedData, json_object, reject_constant, validate_discovery, validate_settings,
+    UnsupportedData, json_object, reject_constant, validate_discovery, validate_settings, validate_log_index,
 )
 from miniatured_world.persistence.settings import (
     ActivitySettings,
@@ -39,7 +39,7 @@ class StorageIssue:
 
     @property
     def message(self) -> str:
-        label = "設定" if self.name == "settings.json" else "発見データ"
+        label = {"settings.json": "設定", "discovery.json": "発見データ", "log-index.json": "ログ管理一覧"}.get(self.name, "保存データ")
         if self.reason == "delete_failed":
             return f"{label}を削除できませんでした。古い内容の再保存を止めています。使用中のファイルを閉じて、削除をもう一度操作してください。"
         if self.reason == "write_failed":
@@ -75,8 +75,8 @@ class JsonStore:
 
     def delete_data(self, name: str) -> bool:
         """確認済みの操作だけから呼ぶ。対象外の名前や再帰削除は扱わない。"""
-        if name not in ("settings.json", "discovery.json"):
-            raise ValueError("削除対象は設定または発見データだけです。")
+        if name not in ("settings.json", "discovery.json", "log-index.json"):
+            raise ValueError("登録された保存データだけを削除できます。")
         self._erased.add(name)
         self._pending.pop(name, None)
         self._retry_at.pop(name, None)
@@ -107,8 +107,8 @@ class JsonStore:
         return True
 
     def resume_saving(self, name: str) -> None:
-        if name not in ("settings.json", "discovery.json"):
-            raise ValueError("保存対象は設定または発見データだけです。")
+        if name not in ("settings.json", "discovery.json", "log-index.json"):
+            raise ValueError("登録された保存データだけを対象にできます。")
         if name not in self._delete_issues and name in self._erased:
             self._erased.discard(name)
             self._checked.discard(name)
@@ -116,6 +116,19 @@ class JsonStore:
     @property
     def root(self) -> Path:
         return self._root
+
+    def is_read_protected(self, name: str) -> bool:
+        return name in self._issues
+
+    def load_log_index(self) -> list[dict[str, str]]:
+        return self._read("log-index.json", validate_log_index).get("logs", [])
+
+    def save_log_index(self, entries: list[dict[str, str]]) -> Path | None:
+        data = {"schema_version": 1, "logs": entries}
+        validate_log_index(data)
+        if "log-index.json" not in self._checked:
+            self.load_log_index()
+        return self._atomic_write("log-index.json", data)
 
     def save_settings(self, settings: Settings) -> Path | None:
         if "settings.json" in self._erased:
