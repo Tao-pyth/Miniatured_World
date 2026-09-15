@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
 
 
@@ -48,6 +48,34 @@ class SanitizedActivityEvent:
 
 
 @dataclass(frozen=True, slots=True)
+class ActivitySelection:
+    keyboard: bool = True
+    movement: bool = True
+    click: bool = True
+    scroll: bool = True
+
+    @property
+    def any_pointer(self) -> bool:
+        return self.movement or self.click or self.scroll
+
+    @property
+    def any_enabled(self) -> bool:
+        return self.keyboard or self.any_pointer
+
+    def allows(self, event: SanitizedActivityEvent) -> bool:
+        if event.type == ActivityType.KEYBOARD:
+            return self.keyboard
+        if event.type == ActivityType.POINTER:
+            return {
+                PointerCategory.MOVE.value: self.movement,
+                PointerCategory.DRAG.value: self.movement,
+                PointerCategory.CLICK.value: self.click,
+                PointerCategory.SCROLL.value: self.scroll,
+            }.get(event.category, False)
+        return event.type == ActivityType.IDLE
+
+
+@dataclass(frozen=True, slots=True)
 class ActivityFrame:
     keyboard_activity: float
     pointer_activity: float
@@ -69,6 +97,21 @@ class ActivityFrame:
             continuity=0.0,
             idle_ratio=1.0,
             session_duration=session_duration,
+        )
+
+    def with_strength(self, strength: float) -> "ActivityFrame":
+        amount = max(0.0, min(1.0, strength))
+        if amount == 1.0:
+            return self
+        return replace(
+            self,
+            keyboard_activity=self.keyboard_activity * amount,
+            pointer_activity=self.pointer_activity * amount,
+            click_activity=self.click_activity * amount,
+            scroll_activity=self.scroll_activity * amount,
+            burstiness=self.burstiness * amount,
+            continuity=self.continuity * amount,
+            idle_ratio=1.0 - (1.0 - self.idle_ratio) * amount,
         )
 
     def intensity(self) -> float:

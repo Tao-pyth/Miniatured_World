@@ -6,6 +6,7 @@ from typing import Any
 
 from miniatured_world.activity import ActivityFrame, ActivityProvider, ActivityProviderStatus, NullActivityProvider
 from miniatured_world.app.commands import RuntimeCommand
+from miniatured_world.activity.models import ActivitySelection
 from miniatured_world.app.service import MiniaturedWorldService
 from miniatured_world.app.snapshot import WorldSnapshot
 
@@ -27,6 +28,7 @@ class AppRuntime:
     provider: ActivityProvider = field(default_factory=NullActivityProvider)
     state: RuntimeState = field(default_factory=RuntimeState)
     _activity_suspended: bool | None = field(default=None, init=False)
+    _activity_selection: ActivitySelection | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         self._sync_activity()
@@ -34,6 +36,7 @@ class AppRuntime:
     def attach_provider(self, provider: ActivityProvider) -> None:
         self.provider = provider
         self._activity_suspended = None
+        self._activity_selection = None
         self._sync_activity()
 
     def _sync_activity(self) -> None:
@@ -42,14 +45,24 @@ class AppRuntime:
             or not self.state.activity_collection_enabled
             or bool(self.state.system_pause_reasons)
         )
-        if suspended == self._activity_suspended:
+        selection = self.service.aggregator.selection
+        selection_changed = selection != self._activity_selection
+        suspension_changed = suspended != self._activity_suspended
+        if not selection_changed and not suspension_changed:
             return
         self.service.aggregator.discard_pending()
         self.state.last_frame = ActivityFrame.quiet()
         setter = getattr(self.provider, "set_suspended", None)
-        if setter is not None:
+        configure = getattr(self.provider, "set_selection", None)
+        reset_fallback = selection_changed and self._activity_selection is not None and configure is None
+        if selection_changed and configure is not None:
+            configure(selection)
+        elif reset_fallback and setter is not None:
+            setter(True)
+        if setter is not None and (suspension_changed or reset_fallback):
             setter(suspended)
         self._activity_suspended = suspended
+        self._activity_selection = selection
 
     @classmethod
     def start(
@@ -116,6 +129,7 @@ class AppRuntime:
             self.set_activity_collection(bool(value))
             return
         self.service.update_setting(section, field_name, value)
+        self._sync_activity()
         if section == "sound" and field_name == "enabled":
             self.state.muted = not bool(value)
 

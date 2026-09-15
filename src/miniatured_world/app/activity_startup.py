@@ -6,6 +6,7 @@ from typing import Literal
 
 from miniatured_world.activity import ActivityProvider, ActivityProviderStatus
 from miniatured_world.app.runtime import AppRuntime
+from miniatured_world.activity.models import ActivitySelection
 
 ActivityChoice = Literal["enable", "disable", "exit"]
 
@@ -17,6 +18,7 @@ class DeferredActivityProvider:
         self._factory = factory
         self._provider: ActivityProvider | None = None
         self._suspended = False
+        self._selection = ActivitySelection()
 
     def status(self) -> ActivityProviderStatus:
         if self._provider is None:
@@ -33,11 +35,23 @@ class DeferredActivityProvider:
         if setter is not None:
             setter(suspended)
 
+    def set_selection(self, selection: ActivitySelection) -> None:
+        self._selection = selection
+        setter = getattr(self._provider, "set_selection", None)
+        if setter is not None:
+            setter(selection)
+        elif self._provider is not None:
+            reset = getattr(self._provider, "set_suspended", None)
+            if reset is not None:
+                reset(True)
+                reset(self._suspended)
+
     def poll(self, now_ms: int):
         if self._suspended:
             return ()
         if self._provider is None:
             self._provider = self._factory()
+            self.set_selection(self._selection)
         return self._provider.poll(now_ms)
 
 
