@@ -139,7 +139,37 @@ class MiniaturedWorldService:
         self._save_settings(force=True)
 
     def update_setting(self, section: str, field_name: str, value: Any) -> None:
+        if self.store and section == "data" and bool(value):
+            if field_name == "save_settings":
+                self.store.resume_saving("settings.json")
+            elif field_name == "save_discovery":
+                self.store.resume_saving("discovery.json")
         self.update_settings(update_settings(self.settings, section, **{field_name: value}))
+
+    def delete_saved_data(self, target: str) -> dict[str, bool]:
+        if target not in ("settings", "discovery", "settings_and_discovery"):
+            raise ValueError("削除対象が不明です。")
+        if self.store is None:
+            return {}
+        names = ("discovery.json", "settings.json") if target == "settings_and_discovery" else (f"{target}.json",)
+        result = {}
+        for name in names:
+            result[name] = self.store.delete_data(name)
+            if not result[name]:
+                continue
+            if name == "discovery.json":
+                self.discovery_manager.forget(self.simulation.session.state.discoveries)
+                self.settings = replace(self.settings, data=replace(self.settings.data, save_discovery=False))
+            else:
+                defaults = Settings()
+                self.settings = replace(
+                    defaults, activity=replace(defaults.activity, enabled=False),
+                    data=replace(defaults.data, save_settings=False, save_discovery=self.settings.data.save_discovery),
+                )
+                self._apply_activity_selection()
+                self.reset_activity()
+        self._save_settings(force=True)
+        return result
 
     def _save_settings(self, *, force: bool = False) -> None:
         if self.store and (force or self.settings.data.save_settings):

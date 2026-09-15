@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from collections.abc import Callable
 import os
@@ -39,6 +40,8 @@ class StorageIssue:
     @property
     def message(self) -> str:
         label = "設定" if self.name == "settings.json" else "発見データ"
+        if self.reason == "delete_failed":
+            return f"{label}を削除できませんでした。古い内容の再保存を止めています。使用中のファイルを閉じて、削除をもう一度操作してください。"
         if self.reason == "write_failed":
             return (
                 f"{label}の変更を保存できていません。元ファイルを保持し、"
@@ -62,16 +65,61 @@ class JsonStore:
         self._pending: dict[str, dict[str, Any]] = {}
         self._retry_at: dict[str, float] = {}
         self._temporary: dict[str, Path] = {}
+        self._erased: set[str] = set()
+        self._delete_issues: dict[str, StorageIssue] = {}
+        self._root_identity = root.resolve()
 
     @property
     def issues(self) -> tuple[StorageIssue, ...]:
-        return (*self._issues.values(), *self._write_issues.values())
+        return (*self._issues.values(), *self._write_issues.values(), *self._delete_issues.values())
+
+    def delete_data(self, name: str) -> bool:
+        """確認済みの操作だけから呼ぶ。対象外の名前や再帰削除は扱わない。"""
+        if name not in ("settings.json", "discovery.json"):
+            raise ValueError("削除対象は設定または発見データだけです。")
+        self._erased.add(name)
+        self._pending.pop(name, None)
+        self._retry_at.pop(name, None)
+        self._write_issues.pop(name, None)
+        try:
+            if self._root.resolve() != self._root_identity:
+                raise OSError("保存先が変更されています。")
+            temporary = self._temporary.get(name)
+            candidates = set()
+            if self._root.exists():
+                # NamedTemporaryFileの予約名だけ。未知のファイル/ディレクトリは辿らない。
+                pattern = re.compile(r"\." + re.escape(name) + r"\.[a-z0-9_]{8}\.tmp")
+                candidates.update(path for path in self._root.iterdir() if pattern.fullmatch(path.name))
+            if temporary is not None:
+                if temporary.parent.resolve() != self._root_identity or not temporary.name.startswith(f".{name}.") or temporary.suffix != ".tmp":
+                    raise OSError("一時ファイルの所有範囲を確認できません。")
+                candidates.add(temporary)
+            for path in sorted(candidates):
+                path.unlink(missing_ok=True)
+            (self._root / name).unlink(missing_ok=True)
+        except OSError:
+            self._delete_issues[name] = StorageIssue(name, "delete_failed")
+            return False
+        self._temporary.pop(name, None)
+        self._issues.pop(name, None)
+        self._delete_issues.pop(name, None)
+        self._checked.discard(name)
+        return True
+
+    def resume_saving(self, name: str) -> None:
+        if name not in ("settings.json", "discovery.json"):
+            raise ValueError("保存対象は設定または発見データだけです。")
+        if name not in self._delete_issues and name in self._erased:
+            self._erased.discard(name)
+            self._checked.discard(name)
 
     @property
     def root(self) -> Path:
         return self._root
 
     def save_settings(self, settings: Settings) -> Path | None:
+        if "settings.json" in self._erased:
+            return None
         if "settings.json" not in self._checked:
             self.load_settings()
         return self._atomic_write("settings.json", asdict(settings))
@@ -100,6 +148,8 @@ class JsonStore:
         )
 
     def save_discovery(self, record: DiscoveryRecord) -> Path | None:
+        if "discovery.json" in self._erased:
+            return None
         if "discovery.json" not in self._checked:
             self.load_discovery()
         safe_discoveries = sorted(set(record.discoveries))
@@ -159,12 +209,14 @@ class JsonStore:
                 self._temporary.pop(name, None)
 
     def _atomic_write(self, name: str, data: dict[str, Any]) -> Path | None:
-        if name in self._issues:
+        if name in self._issues or name in self._erased:
             return None
         self._pending[name] = data
         return self._write_pending(name)
 
     def _write_pending(self, name: str, *, force: bool = False) -> Path | None:
+        if name in self._erased:
+            return None
         if not force and self._clock() < self._retry_at.get(name, 0.0):
             return None
         target = self._root / name

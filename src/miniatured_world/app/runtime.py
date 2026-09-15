@@ -141,6 +141,14 @@ class AppRuntime:
         if section == "sound" and field_name == "enabled":
             self.state.muted = not bool(value)
 
+    def delete_saved_data(self, target: str) -> dict[str, bool]:
+        result = self.service.delete_saved_data(target)
+        if result.get("settings.json"):
+            self.state.activity_collection_enabled = False
+            self.state.muted = not self.service.settings.sound.enabled
+        self._sync_activity()
+        return result
+
     def handle(self, command: RuntimeCommand | str) -> WorldSnapshot:
         runtime_command = RuntimeCommand(command)
         if runtime_command == RuntimeCommand.SHOW_WORLD:
