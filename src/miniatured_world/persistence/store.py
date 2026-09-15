@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
+from collections.abc import Callable
 import os
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
@@ -36,6 +39,11 @@ class StorageIssue:
     @property
     def message(self) -> str:
         label = "設定" if self.name == "settings.json" else "発見データ"
+        if self.reason == "write_failed":
+            return (
+                f"{label}の変更を保存できていません。元ファイルを保持し、"
+                "5秒後以降と終了時に再試行します。"
+            )
         cause = "このバージョンでは扱えないため" if self.reason == "unsupported" else "読み込めないため"
         return (
             f"{label}を{cause}、元ファイルを保護しています。"
@@ -45,14 +53,19 @@ class StorageIssue:
 
 
 class JsonStore:
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, *, clock: Callable[[], float] = time.monotonic) -> None:
         self._root = root
         self._issues: dict[str, StorageIssue] = {}
         self._checked: set[str] = set()
+        self._clock = clock
+        self._write_issues: dict[str, StorageIssue] = {}
+        self._pending: dict[str, dict[str, Any]] = {}
+        self._retry_at: dict[str, float] = {}
+        self._temporary: dict[str, Path] = {}
 
     @property
     def issues(self) -> tuple[StorageIssue, ...]:
-        return tuple(self._issues.values())
+        return (*self._issues.values(), *self._write_issues.values())
 
     @property
     def root(self) -> Path:
@@ -126,21 +139,60 @@ class JsonStore:
         self._issues[name] = StorageIssue(name, reason)
         return {}
 
+    def retry_pending(self, *, force: bool = False) -> None:
+        for name in tuple(self._pending):
+            self._write_pending(name, force=force)
+
+    def cancel_pending_discovery(self) -> None:
+        name = "discovery.json"
+        self._pending.pop(name, None)
+        self._retry_at.pop(name, None)
+        self._write_issues.pop(name, None)
+        # 削除対象はこのStoreが作成した一時ファイルだけ。削除不能なら再利用用に保持する。
+        temporary = self._temporary.get(name)
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+            else:
+                self._temporary.pop(name, None)
+
     def _atomic_write(self, name: str, data: dict[str, Any]) -> Path | None:
         if name in self._issues:
             return None
-        self._root.mkdir(parents=True, exist_ok=True)
+        self._pending[name] = data
+        return self._write_pending(name)
+
+    def _write_pending(self, name: str, *, force: bool = False) -> Path | None:
+        if not force and self._clock() < self._retry_at.get(name, 0.0):
+            return None
         target = self._root / name
-        with NamedTemporaryFile(
-            "w",
-            encoding="utf-8",
-            delete=False,
-            dir=self._root,
-            prefix=f".{name}.",
-            suffix=".tmp",
-        ) as handle:
-            json.dump(data, handle, ensure_ascii=False, indent=2, sort_keys=True)
-            handle.write("\n")
-            temp_name = handle.name
-        os.replace(temp_name, target)
+        try:
+            self._root.mkdir(parents=True, exist_ok=True)
+            temporary = self._temporary.get(name)
+            if temporary is None:
+                handle = NamedTemporaryFile(
+                    "w", encoding="utf-8", delete=False, dir=self._root,
+                    prefix=f".{name}.", suffix=".tmp",
+                )
+                self._temporary[name] = Path(handle.name)
+            else:
+                handle = temporary.open("w", encoding="utf-8")
+            with handle:
+                json.dump(self._pending[name], handle, ensure_ascii=False, indent=2, sort_keys=True)
+                handle.write("\n")
+            os.replace(self._temporary[name], target)
+        except OSError:
+            self._retry_at[name] = self._clock() + 5.0
+            if name not in self._write_issues:
+                issue = StorageIssue(name, "write_failed")
+                self._write_issues[name] = issue
+                # パス・保存内容・OS例外本文を診断へ流さない。
+                logging.getLogger(__name__).warning(issue.message)
+            return None
+        self._temporary.pop(name, None)
+        self._pending.pop(name, None)
+        self._retry_at.pop(name, None)
+        self._write_issues.pop(name, None)
         return target

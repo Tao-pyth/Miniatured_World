@@ -70,26 +70,30 @@ def main(argv: list[str] | None = None) -> int:
     if runtime.service.store:
         for issue in runtime.service.store.issues:
             print(issue.message, file=sys.stderr)
-    if args.stability_log:
-        duration_seconds = args.duration_seconds
-        if duration_seconds is None:
-            duration_seconds = max(1, args.frames) * args.tick_interval_ms / 1000
-        run_stability_check(
-            runtime,
-            log_path=args.stability_log,
-            duration_seconds=duration_seconds,
-            tick_interval_ms=args.tick_interval_ms,
-            realtime=args.realtime,
-        )
+    try:
+        if args.stability_log:
+            duration_seconds = args.duration_seconds
+            if duration_seconds is None:
+                duration_seconds = max(1, args.frames) * args.tick_interval_ms / 1000
+            run_stability_check(
+                runtime,
+                log_path=args.stability_log,
+                duration_seconds=duration_seconds,
+                tick_interval_ms=args.tick_interval_ms,
+                realtime=args.realtime,
+            )
+            print(runtime.service.summary_text())
+            print(f"安定性ログ={args.stability_log}")
+            return 0
+
+        for _ in range(args.frames):
+            runtime.tick(elapsed_ms=args.tick_interval_ms)
+
         print(runtime.service.summary_text())
-        print(f"安定性ログ={args.stability_log}")
         return 0
+    finally:
+        runtime.stop()
 
-    for _ in range(args.frames):
-        runtime.tick(elapsed_ms=args.tick_interval_ms)
-
-    print(runtime.service.summary_text())
-    return 0
 
 
 def _configure_console_output() -> None:

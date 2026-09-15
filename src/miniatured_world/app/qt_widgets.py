@@ -253,14 +253,14 @@ def build_main_window(
             layout.addWidget(self.summary)
             layout.addWidget(self.list_widget)
 
-        def refresh(self, snapshot: WorldSnapshot) -> None:
+        def refresh(self, discoveries: tuple[str, ...]) -> None:
             self.list_widget.clear()
-            if not snapshot.discoveries:
+            if not discoveries:
                 self.list_widget.addItem("発見なし")
             else:
-                for discovery in snapshot.discoveries:
+                for discovery in discoveries:
                     self.list_widget.addItem(_display_value(discovery))
-            self.summary.setText(f"{len(snapshot.discoveries)}件の発見")
+            self.summary.setText(f"{len(discoveries)}件の発見")
 
     class _MiniaturedWorldMainWindow(QMainWindow):
         def __init__(self, runtime: AppRuntime) -> None:
@@ -300,12 +300,11 @@ def build_main_window(
             self.tabs.addTab(self.discovery_tab, "発見")
             self.setCentralWidget(self.tabs)
             self.setStyleSheet(_style_sheet())
-            if runtime.service.store and runtime.service.store.issues:
-                self.storage_notice = QLabel("\n".join(issue.message for issue in runtime.service.store.issues))
-                self.storage_notice.setObjectName("storage_notice")
-                self.storage_notice.setWordWrap(True)
-                self.storage_notice.setStyleSheet("color:#302b25; background:#f2e6cb; padding:8px;")
-                self.statusBar().addWidget(self.storage_notice, 1)
+            self.storage_notice = QLabel()
+            self.storage_notice.setObjectName("storage_notice")
+            self.storage_notice.setWordWrap(True)
+            self.storage_notice.setStyleSheet("color:#302b25; background:#f2e6cb; padding:8px;")
+            self.statusBar().addWidget(self.storage_notice, 1)
             _apply_display_settings(self)
 
             self.timer = QTimer(self)
@@ -338,7 +337,11 @@ def build_main_window(
         def refresh(self, snapshot: WorldSnapshot) -> None:
             _apply_display_settings(self)
             self.world_tab.refresh(snapshot)
-            self.discovery_tab.refresh(snapshot)
+            self.discovery_tab.refresh(tuple(sorted(self.runtime.service.discovery_manager.discoveries)))
+            store = self.runtime.service.store
+            messages = "\n".join(issue.message for issue in store.issues) if store else ""
+            self.storage_notice.setText(messages)
+            self.storage_notice.setVisible(bool(messages))
 
         def showEvent(self, event) -> None:  # noqa: N802
             super().showEvent(event)
