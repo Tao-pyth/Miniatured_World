@@ -300,6 +300,12 @@ def build_main_window(
             self.tabs.addTab(self.discovery_tab, "発見")
             self.setCentralWidget(self.tabs)
             self.setStyleSheet(_style_sheet())
+            if runtime.service.store and runtime.service.store.issues:
+                self.storage_notice = QLabel("\n".join(issue.message for issue in runtime.service.store.issues))
+                self.storage_notice.setObjectName("storage_notice")
+                self.storage_notice.setWordWrap(True)
+                self.storage_notice.setStyleSheet("color:#302b25; background:#f2e6cb; padding:8px;")
+                self.statusBar().addWidget(self.storage_notice, 1)
             _apply_display_settings(self)
 
             self.timer = QTimer(self)
