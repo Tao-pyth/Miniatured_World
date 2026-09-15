@@ -49,6 +49,9 @@ def validate_settings(data: dict) -> None:
         expected = getattr(defaults, item.name)
         if section.keys() - {field.name for field in fields(expected)}:
             raise UnsupportedData("未対応の設定項目")
+        if item.name == "window":
+            validate_window(section)
+            continue
         for name, value in section.items():
             default = getattr(expected, name)
             if type(default) is float:
@@ -62,6 +65,23 @@ def validate_settings(data: dict) -> None:
                 raise ValueError("不正な整数設定")
             if item.name == "privacy" and value is not False:
                 raise ValueError("許可されていないプライバシー設定")
+
+
+def validate_window(section: dict) -> None:
+    from miniatured_world.persistence.settings import WindowSettings
+
+    window = WindowSettings(**section)
+    if type(window.saved) is not bool:
+        raise ValueError("不正なウィンドウ設定")
+    if any(type(value) is not int for value in (window.x, window.y, window.width, window.height)):
+        raise ValueError("不正なウィンドウ設定")
+    if not all(-1_000_000 <= value <= 1_000_000 for value in (window.x, window.y)):
+        raise ValueError("不正なウィンドウ位置")
+    if window.saved:
+        if not all(1 <= value <= 100_000 for value in (window.width, window.height)):
+            raise ValueError("不正なウィンドウ寸法")
+    elif window != WindowSettings():
+        raise ValueError("不正な未保存ウィンドウ設定")
 
 
 def validate_discovery(data: dict) -> None:

@@ -23,6 +23,7 @@ from miniatured_world.persistence.settings import (
     PrivacySettings,
     Settings,
     SoundSettings,
+    WindowSettings,
 )
 
 
@@ -158,6 +159,7 @@ class JsonStore:
             privacy=PrivacySettings(**data.get("privacy", {})),
             performance=PerformanceSettings(**data.get("performance", {})),
             data=DataSettings(**data.get("data", {})),
+            window=WindowSettings(**data.get("window", {})),
         )
 
     def save_discovery(self, record: DiscoveryRecord) -> Path | None:

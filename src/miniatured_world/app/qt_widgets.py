@@ -11,7 +11,8 @@ from miniatured_world.app.native_window import set_windows_click_through
 from miniatured_world.app.runtime import AppRuntime
 from miniatured_world.app.snapshot import WorldSnapshot
 from miniatured_world.app.stability import StabilityLogWriter
-from miniatured_world.persistence.settings import Settings
+from miniatured_world.persistence.settings import Settings, WindowSettings
+from miniatured_world.app.window_placement import fit_window
 from miniatured_world.persistence.log_registry import identify_log
 
 
@@ -24,7 +25,7 @@ def build_main_window(
     on_stability_complete: Callable[[], None] | None = None,
     on_exit: Callable[[], None] | None = None,
 ):
-    from PySide6.QtCore import QElapsedTimer, QEvent, QRect, Qt, QTimer
+    from PySide6.QtCore import QElapsedTimer, QEvent, QPoint, QRect, QSignalBlocker, Qt, QTimer
     from PySide6.QtGui import QColor, QImage, QPainter, QPixmap, QPixmapCache
     from miniatured_world.app.lab_layout import DEFAULT_LAYOUT
     from miniatured_world.app.lab_paint import draw_lab_scene, load_props
@@ -47,6 +48,7 @@ def build_main_window(
         QMessageBox,
         QPushButton,
         QPlainTextEdit,
+        QScrollArea,
         QSlider,
         QSpinBox,
         QStyle,
@@ -298,6 +300,17 @@ def build_main_window(
         def __init__(self, runtime: AppRuntime) -> None:
             super().__init__()
             self.runtime = runtime
+            self._geometry_ready = False
+            self._applying_display = False
+            saved_window = runtime.service.settings.window
+            self._normal_placement: WindowSettings | None = (
+                saved_window if saved_window.saved and runtime.service.settings.general.restore_window_position else None
+            )
+            self._first_show = True
+            self.geometry_timer = QTimer(self)
+            self.geometry_timer.setSingleShot(True)
+            self.geometry_timer.setInterval(300)
+            self.geometry_timer.timeout.connect(self._save_window_placement)
             self._shutting_down = False
             self._quit_requested = False
             self._hidden_to_tray = False
@@ -335,7 +348,12 @@ def build_main_window(
             self.tabs.addTab(self.world_tab, "ラボ")
             self.tabs.addTab(self.settings_tab, "設定")
             self.tabs.addTab(self.discovery_tab, "発見")
-            self.setCentralWidget(self.tabs)
+            # 高DPIや画面縮小時にもラボ/設定の操作へスクロールで到達できる。
+            self.content_scroll = QScrollArea()
+            self.content_scroll.setWidgetResizable(True)
+            self.content_scroll.setFrameShape(QFrame.Shape.NoFrame)
+            self.content_scroll.setWidget(self.tabs)
+            self.setCentralWidget(self.content_scroll)
             self.setStyleSheet(_style_sheet())
             self.storage_notice = QLabel()
             self.storage_notice.setObjectName("storage_notice")
@@ -359,6 +377,9 @@ def build_main_window(
             self.timer.start(self._tick_interval_ms)
             snapshot = runtime.snapshot()
             self.refresh(snapshot)
+            placement = runtime.service.settings.window if runtime.service.settings.general.restore_window_position else WindowSettings()
+            self._fit_placement(placement)
+            self._geometry_ready = True
             if self._stability_logger is not None:
                 self._stability_logger.start(snapshot)
 
@@ -407,6 +428,9 @@ def build_main_window(
         def showEvent(self, event) -> None:  # noqa: N802
             super().showEvent(event)
             self._hidden_to_tray = False
+            if self._first_show:
+                self._first_show = False
+                QTimer.singleShot(0, self._fit_after_show)
             self.world_tab.refresh(self.runtime.snapshot())
             # 再表示は同じセッションを再開する。終了済みの実行は復活させない。
             timer = getattr(self, "timer", None)
@@ -417,6 +441,65 @@ def build_main_window(
                 and not timer.isActive()
             ):
                 timer.start(self._tick_interval_ms)
+
+        def _read_placement(self) -> WindowSettings:
+            handle = self.windowHandle()
+            position = handle.framePosition() if handle is not None else self.pos()
+            return WindowSettings(True, position.x(), position.y(), self.width(), self.height())
+
+        def _normal_window(self) -> bool:
+            return bool(
+                self._geometry_ready and not self._applying_display
+                and self.isVisible() and not self.isMinimized()
+                and not self.isMaximized() and not self.isFullScreen()
+                and self.runtime.service.settings.display.view_mode != "desktop"
+            )
+
+        def _fit_placement(self, placement: WindowSettings) -> None:
+            screens = QApplication.screens()
+            primary = QApplication.primaryScreen()
+            screens.sort(key=lambda screen: screen != primary)
+            areas = [(area.x(), area.y(), area.width(), area.height()) for screen in screens if (area := screen.availableGeometry()).isValid()]
+            handle = self.windowHandle()
+            margins = handle.frameMargins() if handle is not None else None
+            frame = (margins.left(), margins.top(), margins.right(), margins.bottom()) if margins else (0, 0, 0, 0)
+            fitted = fit_window(placement, areas, frame=frame)
+            if not fitted.saved:
+                return
+            self.setMinimumSize(min(900, fitted.width), min(620, fitted.height))
+            self.resize(fitted.width, fitted.height)
+            if handle is not None:
+                handle.setFramePosition(QPoint(fitted.x, fitted.y))
+            else:
+                self.move(fitted.x, fitted.y)
+
+        def _fit_after_show(self) -> None:
+            if self._shutting_down or not self.isVisible():
+                return
+            # OSがフレーム寸法を確定した後、タスクバーへのはみ出しを補正。
+            self._fit_placement(self._read_placement())
+            self._schedule_window_save()
+
+        def moveEvent(self, event) -> None:  # noqa: N802
+            super().moveEvent(event)
+            self._schedule_window_save()
+
+        def resizeEvent(self, event) -> None:  # noqa: N802
+            super().resizeEvent(event)
+            self._schedule_window_save()
+
+        def _schedule_window_save(self) -> None:
+            if self._shutting_down or not self._normal_window():
+                return
+            self._normal_placement = self._read_placement()
+            self.geometry_timer.start()
+
+        def _save_window_placement(self) -> None:
+            self.geometry_timer.stop()
+            if self._normal_window():
+                self._normal_placement = self._read_placement()
+            if self._normal_placement is not None:
+                self.runtime.service.remember_window(self._normal_placement)
 
         def _delete_saved_data(self, target: str) -> None:
             if self.runtime.service.store is None and target != "cache":
@@ -446,7 +529,7 @@ def build_main_window(
                 if target in ("settings", "discovery", "settings_and_discovery", "all"):
                     detail += "削除した種類の保存はOFFになり、設定からONにできます。"
                 if target in ("settings", "settings_and_discovery", "all"):
-                    detail += "設定を初期化し、活動取得もOFFにします。"
+                    detail += "設定を初期化し、活動取得もOFFにします。ログイン時の起動登録も解除します。解除できない場合は設定を残します。"
                 if target in ("logs", "selected_logs", "all"):
                     detail += f"\n対象ログ: {len(entries)}件。ログ出力を停止して削除します。"
                     detail += "\n未登録の過去ログは「過去ログを追加」から選択できます。未知のファイルは自動探索しません。"
@@ -486,10 +569,16 @@ def build_main_window(
                     result["log_registration"] = False
             if target in ("settings", "discovery", "settings_and_discovery", "all"):
                 result.update(self.runtime.delete_saved_data("settings_and_discovery" if target == "all" else target))
+                if result.get("settings.json"):
+                    self.geometry_timer.stop()
+                    self._normal_placement = None
             if target in ("cache", "all"):
                 result["cache"] = self.world_tab.preview.clear_cache()
             messages = []
             for name, success in result.items():
+                if name == "startup":
+                    messages.append("ログイン時の起動登録を解除しました。" if success else "ログイン時の起動登録を解除できませんでした。設定を残しています。")
+                    continue
                 label = {"settings.json": "設定", "discovery.json": "発見データ", "log-index.json": "ログ管理一覧", "cache": "キャッシュ", "log_registration": "所在を確認できないログ"}.get(name, f"ログ（{name}）")
                 messages.append(f"{label}を削除しました。" if success else f"{label}を削除できませんでした。")
             self._data_result_lines = messages
@@ -539,6 +628,7 @@ def build_main_window(
             if self._shutting_down:
                 return
             if self._tray_available():
+                self._save_window_placement()
                 self._hidden_to_tray = True
                 self.hide()
             else:
@@ -590,6 +680,7 @@ def build_main_window(
             """確認を伴わない冪等な後始末。Qtの終了通知とテストにも使用する。"""
             if self._shutting_down:
                 return
+            self._save_window_placement()
             self._shutting_down = True
             if self._exit_dialog is not None:
                 self._exit_dialog.reject()
@@ -857,10 +948,34 @@ def build_main_window(
         return combo
 
     def _general_settings(settings: Settings, runtime: AppRuntime) -> QWidget:
+        launch = QCheckBox("登録する")
+        launch.setObjectName("general_launch_on_login")
+        startup_notice = QLabel()
+        startup_notice.setObjectName("startup_status")
+        startup_notice.setWordWrap(True)
+        retry = QPushButton("登録状態を再確認")
+        retry.setObjectName("startup_refresh")
+
+        def show_startup(status) -> None:
+            with QSignalBlocker(launch):
+                launch.setTristate(status.registered is None)
+                launch.setCheckState(Qt.CheckState.PartiallyChecked if status.registered is None else Qt.CheckState.Checked if status.registered else Qt.CheckState.Unchecked)
+                launch.setEnabled(status.can_change)
+            startup_notice.setText(status.message)
+
+        def change_startup(enabled: bool) -> None:
+            show_startup(runtime.set_launch_on_login(enabled))
+
+        launch.toggled.connect(change_startup)
+        retry.clicked.connect(lambda: show_startup(runtime.startup.inspect()))
+        show_startup(runtime.startup.inspect())
         return _group(
             "一般",
             [
-                ("ログイン時に起動", _check(settings.general.launch_on_login, on_change=_setting(runtime, "general", "launch_on_login"))),
+                ("ログイン時に起動", launch),
+                ("登録状態", startup_notice),
+                ("", retry),
+                ("起動設定について", QLabel("登録はWindows側へ保存します。設定の保存OFFでも保持されます。\nアプリを移動した場合は、一度OFFにしてからONにしてください。")),
                 ("トレイへ最小化", _check(settings.general.minimize_to_tray, on_change=_setting(runtime, "general", "minimize_to_tray"))),
                 ("起動時にワールド表示", _check(settings.general.show_world_on_start, on_change=_setting(runtime, "general", "show_world_on_start"))),
                 ("表示位置を復元", _check(settings.general.restore_window_position, on_change=_setting(runtime, "general", "restore_window_position"))),
@@ -982,7 +1097,15 @@ def build_main_window(
         if desktop_mode or display.always_on_top:
             flags |= Qt.WindowType.WindowStaysOnTopHint
 
+        previous_signature = window._display_signature
+        previous_placement = window._normal_placement
+        # 設定値は先に変わるため、直前の表示モードでも通常位置を判定する。
+        if previous_signature and previous_signature[0] != "desktop" and window.isVisible() and not window.isMinimized() and not window.isMaximized() and not window.isFullScreen():
+            previous_placement = window._read_placement()
+        if previous_placement is not None:
+            window._normal_placement = previous_placement
         was_visible = window.isVisible()
+        window._applying_display = True
         window.setWindowFlags(flags)
         window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, desktop_mode)
         window.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, desktop_mode and display.click_through)
@@ -992,6 +1115,9 @@ def build_main_window(
         if was_visible:
             window.show()
         set_windows_click_through(int(window.winId()), desktop_mode and display.click_through)
+        if not desktop_mode and previous_placement is not None:
+            window._fit_placement(previous_placement)
+        window._applying_display = False
 
     def _status_text(snapshot: WorldSnapshot) -> str:
         if not snapshot.running:

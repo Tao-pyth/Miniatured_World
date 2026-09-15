@@ -78,6 +78,16 @@ class DataSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class WindowSettings:
+    # 自分の通常ウィンドウのフレーム位置と内容サイズ。入力座標ではない。
+    saved: bool = False
+    x: int = 0
+    y: int = 0
+    width: int = 0
+    height: int = 0
+
+
+@dataclass(frozen=True, slots=True)
 class Settings:
     schema_version: int = 1
     # 説明の表示状態。既存のON設定から同意履歴を推定しない。
@@ -90,6 +100,7 @@ class Settings:
     privacy: PrivacySettings = field(default_factory=PrivacySettings)
     performance: PerformanceSettings = field(default_factory=PerformanceSettings)
     data: DataSettings = field(default_factory=DataSettings)
+    window: WindowSettings = field(default_factory=WindowSettings)
 
 
 def update_settings(settings: Settings, section: str, **changes: Any) -> Settings:

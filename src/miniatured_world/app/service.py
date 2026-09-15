@@ -10,6 +10,7 @@ from miniatured_world.activity.models import ActivityFrame, ActivitySelection
 from miniatured_world.persistence import DiscoveryManager, JsonStore, Settings, update_settings
 from miniatured_world.world import WorldSession, WorldSimulation
 from miniatured_world.persistence.log_registry import LogRegistry
+from miniatured_world.persistence.settings import WindowSettings
 
 
 _SUMMARY_LABELS = {
@@ -173,6 +174,18 @@ class MiniaturedWorldService:
                 self.reset_activity()
         self._save_settings(force=True)
         return result
+
+    def remember_window(self, placement: WindowSettings) -> None:
+        # 自動位置更新は明示的設定変更のforce保存を使わない。
+        if (
+            self.store is None or not self.settings.data.save_settings
+            or not self.settings.general.restore_window_position
+            or self.store.is_read_protected("settings.json")
+            or placement == self.settings.window
+        ):
+            return
+        self.settings = replace(self.settings, window=placement)
+        self._save_settings()
 
     def _save_settings(self, *, force: bool = False) -> None:
         if self.store and (force or self.settings.data.save_settings):
