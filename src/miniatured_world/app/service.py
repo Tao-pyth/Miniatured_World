@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from collections import deque
 from pathlib import Path
 from typing import Any
 
 from miniatured_world.activity import ActivityAggregator, PrivacyFilter
-from miniatured_world.activity.models import ActivitySelection
+from miniatured_world.activity.models import ActivityFrame, ActivitySelection
 from miniatured_world.persistence import DiscoveryManager, JsonStore, Settings, update_settings
 from miniatured_world.world import WorldSession, WorldSimulation
 
@@ -27,9 +28,15 @@ class MiniaturedWorldService:
     store: JsonStore | None = None
     discovery_manager: DiscoveryManager = field(default_factory=DiscoveryManager)
     now_ms: int = 0
+    _next_activity_ms: int = field(default=1000, init=False)
+    _next_world_ms: int = field(default=1000, init=False)
+    _persistence_initialized: bool = field(default=False, init=False)
+    _activity_windows: deque[tuple[int, ActivityFrame]] = field(default_factory=deque, init=False)
+    _display_frame: ActivityFrame = field(default_factory=ActivityFrame.quiet, init=False)
 
     def __post_init__(self) -> None:
         self._apply_activity_selection()
+        self.reset_activity()
 
     def _apply_activity_selection(self) -> None:
         activity = self.settings.activity
@@ -37,9 +44,42 @@ class MiniaturedWorldService:
             activity.keyboard_enabled, activity.mouse_enabled,
             activity.click_enabled, activity.scroll_enabled,
         )
-        if selection != self.aggregator.selection:
-            self.aggregator.discard_pending()
+        window_ms = max(100, min(5000, activity.frame_window_ms))
+        if selection != self.aggregator.selection or window_ms != self.aggregator.frame_window_ms:
             self.aggregator.selection = selection
+            self.aggregator.frame_window_ms = window_ms
+            self.reset_activity()
+
+    def reset_activity(self) -> None:
+        self.aggregator.discard_pending()
+        self._activity_windows.clear()
+        self._display_frame = ActivityFrame.quiet(self.now_ms / 1000.0)
+        self._next_activity_ms = self.now_ms + self.aggregator.frame_window_ms
+
+    def effective_tick_ms(self, requested_ms: int) -> int:
+        if requested_ms <= 0:
+            raise ValueError("更新間隔は正のミリ秒で指定してください。")
+        return min(requested_ms, self.aggregator.frame_window_ms)
+
+    def _consume_world_frame(self, world_ms: int) -> ActivityFrame:
+        names = ("keyboard_activity", "pointer_activity", "click_activity", "scroll_activity", "burstiness", "continuity")
+        values = dict.fromkeys(names, 0.0)
+        idle_deficit = 0.0
+        remaining = 1000
+        while remaining and self._activity_windows:
+            duration, frame = self._activity_windows.popleft()
+            used = min(remaining, duration)
+            weight = used / 1000.0
+            for name in names:
+                values[name] += getattr(frame, name) * weight
+            idle_deficit += (1.0 - frame.idle_ratio) * weight
+            remaining -= used
+            if used < duration:
+                self._activity_windows.appendleft((duration - used, frame))
+        values = {name: min(1.0, max(0.0, value)) for name, value in values.items()}
+        return ActivityFrame(
+            **values, idle_ratio=max(0.0, 1.0 - idle_deficit), session_duration=world_ms / 1000.0,
+        ).with_strength(self.settings.activity.reflection_strength)
 
     @classmethod
     def start(cls, seed: int, data_root: Path | None = None) -> "MiniaturedWorldService":
@@ -65,16 +105,31 @@ class MiniaturedWorldService:
             self.aggregator.add(self.privacy_filter.idle(base + 300, 10_000))
 
     def step(self, elapsed_ms: int = 1000):
-        self.now_ms += elapsed_ms
-        frame = self.aggregator.frame(self.now_ms).with_strength(self.settings.activity.reflection_strength)
-        self.simulation.step(frame)
-        self._save_settings()
-        self.discovery_manager.merge(
-            self.simulation.session.state.discoveries,
-            persist=self.settings.data.save_discovery,
-        )
+        if elapsed_ms <= 0:
+            raise ValueError("経過時間は正のミリ秒で指定してください。")
+        target_ms = self.now_ms + elapsed_ms
+        world_updated = False
+        while min(self._next_activity_ms, self._next_world_ms) <= target_ms:
+            boundary = min(self._next_activity_ms, self._next_world_ms)
+            if boundary == self._next_activity_ms:
+                frame = replace(self.aggregator.frame(boundary), session_duration=boundary / 1000.0)
+                self._display_frame = frame
+                self._activity_windows.append((self.aggregator.frame_window_ms, frame))
+                self._next_activity_ms += self.aggregator.frame_window_ms
+            if boundary == self._next_world_ms:
+                self.simulation.step(self._consume_world_frame(boundary))
+                self._next_world_ms += 1000
+                world_updated = True
+        self.now_ms = target_ms
+        if world_updated or not self._persistence_initialized:
+            self._persistence_initialized = True
+            self._save_settings()
+            self.discovery_manager.merge(
+                self.simulation.session.state.discoveries,
+                persist=self.settings.data.save_discovery,
+            )
         self.retry_pending_saves()
-        return frame
+        return self._display_frame.with_strength(self.settings.activity.reflection_strength)
 
     def update_settings(self, settings: Settings) -> None:
         self.settings = settings

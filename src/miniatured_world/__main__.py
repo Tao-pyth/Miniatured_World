@@ -29,9 +29,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = _JapaneseArgumentParser(prog="miniatured-world", description="小さなラボラトリーを起動します。", add_help=False)
     parser.add_argument("-h", "--help", action="help", help="このヘルプを表示して終了します。")
     parser.add_argument("--seed", type=int, default=None, help="再現に使うシード値。省略時はGUI・CLIとも起動ごとに新しく生成します。")
-    parser.add_argument("--frames", type=int, default=5, help="UIなし実行で進めるフレーム数。")
+    parser.add_argument("--frames", type=int, default=5, help="指定更新間隔を単位に進める回数。集約処理は必要に応じて細分化します。")
     parser.add_argument("--duration-seconds", type=float, default=None, help="安定性検証で実行する秒数。")
-    parser.add_argument("--tick-interval-ms", type=int, default=1000, help="1フレームの経過時間ミリ秒。")
+    parser.add_argument("--tick-interval-ms", type=int, default=1000, help="更新間隔の上限ミリ秒。集約間隔が短い場合はそちらに合わせます。")
     parser.add_argument("--realtime", action="store_true", help="安定性検証を壁時計の経過に合わせて実行します。")
     parser.add_argument("--stability-log", type=Path, default=None, help="安定性検証ログをJSONL形式で保存するパス。")
     parser.add_argument("--no-ui", action="store_true", help="Qt画面を起動せず、CLIでスモーク実行します。")
@@ -44,6 +44,8 @@ def main(argv: list[str] | None = None) -> int:
         help="活動取得元を選択します。windows-global はWindows実活動取得を試みます。",
     )
     args = parser.parse_args(argv)
+    if args.tick_interval_ms <= 0:
+        parser.error("更新間隔は正のミリ秒で指定してください。")
     seed = args.seed if args.seed is not None else secrets.randbits(64)
     data_root = None if args.ephemeral else args.data_root or default_data_root()
 
@@ -87,7 +89,11 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         for _ in range(args.frames):
-            runtime.tick(elapsed_ms=args.tick_interval_ms)
+            remaining_ms = args.tick_interval_ms
+            while remaining_ms > 0:
+                interval = min(runtime.service.effective_tick_ms(args.tick_interval_ms), remaining_ms)
+                runtime.tick(elapsed_ms=interval)
+                remaining_ms -= interval
 
         print(runtime.service.summary_text())
         return 0

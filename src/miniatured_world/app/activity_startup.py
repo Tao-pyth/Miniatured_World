@@ -19,6 +19,7 @@ class DeferredActivityProvider:
         self._provider: ActivityProvider | None = None
         self._suspended = False
         self._selection = ActivitySelection()
+        self._timing_reset_ms: int | None = None
 
     def status(self) -> ActivityProviderStatus:
         if self._provider is None:
@@ -46,12 +47,20 @@ class DeferredActivityProvider:
                 reset(True)
                 reset(self._suspended)
 
+    def reset_timing(self, now_ms: int) -> None:
+        self._timing_reset_ms = now_ms
+        reset = getattr(self._provider, "reset_timing", None)
+        if reset is not None:
+            reset(now_ms)
+
     def poll(self, now_ms: int):
         if self._suspended:
             return ()
         if self._provider is None:
             self._provider = self._factory()
             self.set_selection(self._selection)
+            if self._timing_reset_ms is not None:
+                self.reset_timing(self._timing_reset_ms)
         return self._provider.poll(now_ms)
 
 

@@ -1,3 +1,4 @@
+import time
 import os
 
 import pytest
@@ -49,6 +50,12 @@ def gui():
     app.processEvents()
 
 
+def wait_for_world(runtime, before):
+    deadline = time.monotonic() + 4.0
+    while runtime.snapshot().world_time <= before and time.monotonic() < deadline:
+        QTest.qWait(20)
+
+
 @pytest.mark.parametrize("manual", [False, True])
 def test_lock_freezes_world_and_animation_then_restores_manual_state(gui, manual):
     runtime, window, monitor, api = gui
@@ -60,7 +67,10 @@ def test_lock_freezes_world_and_animation_then_restores_manual_state(gui, manual
     assert not window.world_tab.preview.animation_timer.isActive()
     assert window.world_tab.pause_button.text() == ("再開" if manual else "一時停止")
     monitor.handle_message(WM_WTSSESSION_CHANGE, 8, api.session_id)
-    QTest.qWait(100)
+    if manual:
+        QTest.qWait(100)
+    else:
+        wait_for_world(runtime, before)
     assert runtime.state.paused == manual
     assert (runtime.snapshot().world_time == before) == manual
 
@@ -93,7 +103,7 @@ def test_monitor_survives_window_close_hide_and_display_mode(gui):
     assert not window.world_tab.preview.animation_timer.isActive()
     monitor.handle_message(WM_WTSSESSION_CHANGE, 8, 7)
     window.hide()
-    QTest.qWait(80)
+    wait_for_world(runtime, before)
     assert runtime.snapshot().world_time > before
     assert api.removed == []
 
